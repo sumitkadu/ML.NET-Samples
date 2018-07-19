@@ -1,0 +1,1090 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.ML.Api</name>
+    </assembly>
+    <members>
+        <member name="M:Microsoft.ML.Runtime.Api.ApiUtils.GeneratePeek``2(Microsoft.ML.Runtime.Api.InternalSchemaDefinition.Column)">
+            <summary>
+            Each of the specialized 'peek' methods copies the appropriate field value of an instance of T
+            into the provided buffer. So, the call is 'peek(userObject, ref destination)' and the logic is 
+            indentical to 'destination = userObject.##FIELD##', where ##FIELD## is defined per peek method.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ApiUtils.GeneratePoke``2(Microsoft.ML.Runtime.Api.InternalSchemaDefinition.Column)">
+            <summary>
+            Each of the specialized 'poke' methods sets the appropriate field value of an instance of T
+            to the provided value. So, the call is 'peek(userObject, providedValue)' and the logic is 
+            indentical to 'userObject.##FIELD## = providedValue', where ##FIELD## is defined per poke method.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.CodeGenerationUtils">
+            <summary>
+            Utility methods for code generation.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.CodeGenerationUtils.MultiReplace(System.String,System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Replace placeholders with provided values. Assert that every placeholder is found.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.CodeGenerationUtils.AppendFieldDeclaration(Microsoft.CSharp.CSharpCodeProvider,System.Text.StringBuilder,System.Int32,System.String,Microsoft.ML.Runtime.Data.ColumnType,System.Boolean,System.Boolean)">
+            <summary>
+            Append a field declaration to the provided <see cref="T:System.Text.StringBuilder"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.CodeGenerationUtils.GetCSharpString(Microsoft.CSharp.CSharpCodeProvider,System.String)">
+            <summary>
+            Generates a C# string for a given input (with proper escaping).
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.CodeGenerationUtils.GetBackingTypeName(Microsoft.ML.Runtime.Data.ColumnType,System.Boolean,System.Collections.Generic.List{System.String})">
+            <summary>
+            Gets the C# strings representing the type name for a variable corresponding to 
+            the <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/> column type. 
+            
+            If the type is a vector, then <paramref name="useVBuffer"/> controls whether the array field is 
+            generated or <see cref="T:Microsoft.ML.Runtime.Data.VBuffer`1"/>.
+            
+            If additional attributes are required, they are appended to the <paramref name="attributes"/> list.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.ComponentCreation">
+            <summary>
+            This class defines extension methods for an <see cref="T:Microsoft.ML.Runtime.IHostEnvironment"/> to facilitate creating 
+            components (loaders, transforms, trainers, scorers, evaluators, savers).
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.Zip(Microsoft.ML.Runtime.IHostEnvironment,System.Collections.Generic.IEnumerable{Microsoft.ML.Runtime.Data.IDataView})">
+            <summary>
+            Create a new data view which is obtained by appending all columns of all the source data views.
+            If the data views are of different length, the resulting data view will have the length equal to the 
+            length of the shortest source.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="sources">A non-empty collection of data views to zip together.</param>
+            <returns>The resulting data view.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreateExamples(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.String,System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{Microsoft.ML.Runtime.Data.RoleMappedSchema.ColumnRole,System.String}})">
+            <summary>
+            Generate training examples for training a predictor or instantiating a scorer.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="data">The data to use for training or scoring.</param>
+            <param name="features">The name of the features column. Can be null.</param>
+            <param name="label">The name of the label column. Can be null.</param>
+            <param name="group">The name of the group ID column (for ranking). Can be null.</param>
+            <param name="weight">The name of the weight column. Can be null.</param>
+            <param name="custom">Additional column mapping to be passed to the trainer or scorer (specific to the prediction type). Can be null or empty.</param>
+            <returns>The constructed examples.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreateDataView``1(Microsoft.ML.Runtime.IHostEnvironment,System.Collections.Generic.IList{``0},Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            Create a new <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/> over an in-memory collection of the items of user-defined type.
+            The user maintains ownership of the <paramref name="data"/> and the resulting data view will
+            never alter the contents of the <paramref name="data"/>.
+            Since <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/> is assumed to be immutable, the user is expected to not 
+            modify the contents of <paramref name="data"/> while the data view is being actively cursored.
+            
+            One typical usage for in-memory data view could be: create the data view, train a predictor.
+            Once the predictor is fully trained, modify the contents of the underlying collection and 
+            train another predictor.
+            </summary>
+            <typeparam name="TRow">The user-defined item type.</typeparam>
+            <param name="env">The host environment to use for data view creation.</param>
+            <param name="data">The data to wrap around.</param>
+            <param name="schemaDefinition">The optional schema definition of the data view to create. If <c>null</c>,
+            the schema definition is inferred from <typeparamref name="TRow"/>.</param>
+            <returns>The constructed <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreateStreamingDataView``1(Microsoft.ML.Runtime.IHostEnvironment,System.Collections.Generic.IEnumerable{``0},Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            Create a new <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/> over an enumerable of the items of user-defined type.
+            The user maintains ownership of the <paramref name="data"/> and the resulting data view will
+            never alter the contents of the <paramref name="data"/>.
+            Since <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/> is assumed to be immutable, the user is expected to support
+            multiple enumeration of the <paramref name="data"/> that would return the same results, unless
+            the user knows that the data will only be cursored once.
+            
+            One typical usage for streaming data view could be: create the data view that lazily loads data
+            as needed, then apply pre-trained transformations to it and cursor through it for transformation 
+            results. This is how <see cref="T:Microsoft.ML.Runtime.Api.BatchPredictionEngine`2"/> is implemented.
+            </summary>
+            <typeparam name="TRow">The user-defined item type.</typeparam>
+            <param name="env">The host environment to use for data view creation.</param>
+            <param name="data">The data to wrap around.</param>
+            <param name="schemaDefinition">The optional schema definition of the data view to create. If <c>null</c>,
+            the schema definition is inferred from <typeparamref name="TRow"/>.</param>
+            <returns>The constructed <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreateBatchPredictionEngine``2(Microsoft.ML.Runtime.IHostEnvironment,System.IO.Stream,System.Boolean,Microsoft.ML.Runtime.Api.SchemaDefinition,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            Create a batch prediction engine.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="modelStream">The stream to deserialize the pipeline (transforms and predictor) from.</param>
+            <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
+            <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TSrc"/> type.</param>
+            <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TDst"/> type.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreateBatchPredictionEngine``2(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.Boolean,Microsoft.ML.Runtime.Api.SchemaDefinition,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            Create a batch prediction engine.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="dataPipe">The transformation pipe that may or may not include a scorer.</param>
+            <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
+            <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TSrc"/> type.</param>
+            <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TDst"/> type.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreatePredictionEngine``2(Microsoft.ML.Runtime.IHostEnvironment,System.IO.Stream,System.Boolean,Microsoft.ML.Runtime.Api.SchemaDefinition,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            Create an on-demand prediction engine.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="modelStream">The stream to deserialize the pipeline (transforms and predictor) from.</param>
+            <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
+            <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TSrc"/> type.</param>
+            <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TDst"/> type.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreatePredictionEngine``2(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.Boolean,Microsoft.ML.Runtime.Api.SchemaDefinition,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            Create an on-demand prediction engine.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="dataPipe">The transformation pipe that may or may not include a scorer.</param>
+            <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
+            <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TSrc"/> type.</param>
+            <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TDst"/> type.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreateSimplePredictionEngine(Microsoft.ML.Runtime.IHostEnvironment,System.IO.Stream,System.Int32)">
+            <summary>
+            Create a prediction engine.
+            This encapsulates the 'classic' prediction problem, where the input is denoted by the float array of features,
+            and the output is a float score. For binary classification predictors that can output probability, there are output 
+            fields that report the predicted label and probability.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="modelStream">The model stream to load pipeline from.</param>
+            <param name="nFeatures">Number of features.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.LoadTransforms(Microsoft.ML.Runtime.IHostEnvironment,System.IO.Stream,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Load the transforms (but not loader) from the model steram and apply them to the specified data.
+            It is acceptable to have no transforms in the model stream: in this case the original 
+            <paramref name="data"/> will be returned.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="modelStream">The model stream to load from.</param>
+            <param name="data">The data to apply transforms to.</param>
+            <returns>The transformed data.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreateLoader``1(Microsoft.ML.Runtime.IHostEnvironment,``0,Microsoft.ML.Runtime.Data.IMultiStreamSource)">
+            <summary>
+            Creates a data loader from the arguments object.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreateLoader(Microsoft.ML.Runtime.IHostEnvironment,System.String,Microsoft.ML.Runtime.Data.IMultiStreamSource)">
+            <summary>
+            Creates a data loader from the 'LoadName{settings}' string.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreateSaver``1(Microsoft.ML.Runtime.IHostEnvironment,``0)">
+            <summary>
+            Creates a data saver from the arguments object.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreateSaver(Microsoft.ML.Runtime.IHostEnvironment,System.String)">
+            <summary>
+            Creates a data saver from the 'LoadName{settings}' string.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreateTransform``1(Microsoft.ML.Runtime.IHostEnvironment,``0,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Creates a data transform from the arguments object.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreateTransform(Microsoft.ML.Runtime.IHostEnvironment,System.String,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Creates a data transform from the 'LoadName{settings}' string.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreateScorer(Microsoft.ML.Runtime.IHostEnvironment,System.String,Microsoft.ML.Runtime.Data.RoleMappedData,Microsoft.ML.Runtime.Api.Predictor,Microsoft.ML.Runtime.Data.RoleMappedSchema)">
+            <summary>
+            Creates a data scorer from the 'LoadName{settings}' string.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="settings">The settings string.</param>
+            <param name="data">The data to score.</param>
+            <param name="predictor">The predictor to score.</param>
+            <param name="trainSchema">The training data schema from which the scorer can optionally extract
+            additional information, e.g., label names. If this is <c>null</c>, no information will be
+            extracted.</param>
+            <returns>The scored data.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.CreateDefaultScorer(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.RoleMappedData,Microsoft.ML.Runtime.Api.Predictor,Microsoft.ML.Runtime.Data.RoleMappedSchema)">
+            <summary>
+            Creates a default data scorer appropriate to the predictor's prediction kind.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="data">The data to score.</param>
+            <param name="predictor">The predictor to score.</param>
+            <param name="trainSchema">The training data schema from which the scorer can optionally extract
+            additional information, e.g., label names. If this is <c>null</c>, no information will be
+            extracted.</param>
+            <returns>The scored data.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ComponentCreation.LoadPredictorOrNull(Microsoft.ML.Runtime.IHostEnvironment,System.IO.Stream)">
+            <summary>
+            Loads a predictor from the model stream. Returns null iff there's no predictor.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="modelStream">The model stream.</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.DataViewConstructionUtils">
+            <summary>
+            A helper class to create data views based on the user-provided types.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.DataViewConstructionUtils.DataViewBase`1">
+            <summary>
+            The base class for the data view over items of user-defined type.
+            </summary>
+            <typeparam name="TRow">The user-defined data type.</typeparam>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.DataViewConstructionUtils.ListDataView`1">
+            <summary>
+            An in-memory data view based on the IList of data. 
+            Supports shuffling.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.DataViewConstructionUtils.StreamingDataView`1">
+            <summary>
+            An in-memory data view based on the IEnumerable of data. 
+            Doesn't support shuffling.
+            
+            This class is public because prediction engine wants to call its <see cref="M:Microsoft.ML.Runtime.Api.DataViewConstructionUtils.StreamingDataView`1.SetData(System.Collections.Generic.IEnumerable{`0})"/>
+            for performance reasons. 
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.DataViewConstructionUtils.StreamingDataView`1.SetData(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Since all the cursors only depend on an enumerator (rather than the data itself),
+            it's safe to 'swap' the data inside the streaming data view. This doesn't affect
+            the current 'live' cursors, only the ones that will be created later.
+            This is used for efficiency in <see cref="T:Microsoft.ML.Runtime.Api.BatchPredictionEngine`2"/>.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.DataViewConstructionUtils.SingleRowLoopDataView`1">
+            <summary>
+            This represents the 'infinite data view' over one (mutable) user-defined object.
+            The 'current row' object can be updated at any time, this will affect all the 
+            newly created cursors, but not the ones already existing.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.MetadataInfo">
+            <summary>
+            A single instance of metadata information, associated with a column.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Api.MetadataInfo.MetadataType">
+            <summary>
+            The type of the metadata.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Api.MetadataInfo.Kind">
+            <summary>
+            The string identifier of the metadata. Some identifiers have special meaning, 
+            like "SlotNames", but any other identifiers can be used.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.MetadataInfo`1">
+            <summary>
+            Strongly-typed version of <see cref="T:Microsoft.ML.Runtime.Api.MetadataInfo"/>, that contains the actual value of the metadata.
+            </summary>
+            <typeparam name="T">Type of the metadata value.</typeparam>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.MetadataInfo`1.#ctor(System.String,`0,Microsoft.ML.Runtime.Data.ColumnType)">
+            <summary>
+            Constructor for metadata of value type T.
+            </summary>
+            <param name="kind">The string identifier of the metadata. Some identifiers have special meaning, 
+            like "SlotNames", but any other identifiers can be used.</param>
+            <param name="value">Metadata value.</param>
+            <param name="metadataType">Type of the metadata.</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.GenerateCodeCommand">
+            <summary>
+            Generates the sample prediction code for a given model file, with correct input and output classes.
+            
+            REVIEW: Consider adding support for generating VBuffers instead of arrays, maybe for high dimensionality vectors.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Api.GenerateCodeCommand.Arguments.SparseVectorDeclaration">
+            <summary>
+            Whether to use the <see cref="T:Microsoft.ML.Runtime.Data.VBuffer`1"/> to represent vector columns (supports sparse vectors).
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.InternalSchemaDefinition">
+            <summary>
+            An internal class that holds the (already validated) mapping between a custom type and an IDataView schema.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.InternalSchemaDefinition.Column.AssertRep">
+            <summary>
+            Function that checks whether the InternalSchemaDefinition.Column is a valid one. 
+            To be valid, the Column must:
+                1. Have non-empty values for ColumnName and ColumnType
+                2. Have a non-empty value for FieldInfo iff it is a field column, else
+                   ReturnParameterInfo and Generator iff it is a computed column
+                3. Generator must have the method inputs (TRow rowObject, 
+                   long position, ref TValue outputValue) in that order.
+             </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.InternalSchemaDefinition.GetVectorAndKind(System.Reflection.FieldInfo,System.Boolean@,Microsoft.ML.Runtime.Data.DataKind@)">
+            <summary>
+            Given a field info on a type, returns whether this appears to be a vector type,
+            and also the associated data kind for this type. If a data kind could not
+            be determined, this will throw. 
+            </summary>
+            <param name="fieldInfo">The field info to inspect.</param>
+            <param name="isVector">Whether this appears to be a vector type.</param>
+            <param name="kind">The data kind of the type, or items of this type if vector.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.InternalSchemaDefinition.GetVectorAndKind(System.Reflection.ParameterInfo,System.Boolean@,Microsoft.ML.Runtime.Data.DataKind@)">
+            <summary>
+            Given a parameter info on a type, returns whether this appears to be a vector type,
+            and also the associated data kind for this type. If a data kind could not
+            be determined, this will throw. 
+            </summary>
+            <param name="parameterInfo">The parameter info to inspect.</param>
+            <param name="isVector">Whether this appears to be a vector type.</param>
+            <param name="kind">The data kind of the type, or items of this type if vector.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.InternalSchemaDefinition.GetVectorAndKind(System.Type,System.String,System.Boolean@,Microsoft.ML.Runtime.Data.DataKind@)">
+            <summary>
+            Given a type and name for a variable, returns whether this appears to be a vector type,
+            and also the associated data kind for this type. If a data kind could not
+            be determined, this will throw. 
+            </summary>
+            <param name="rawType">The type of the variable to inspect.</param>
+            <param name="name">The name of the variable to inspect.</param>
+            <param name="isVector">Whether this appears to be a vector type.</param>
+            <param name="kind">The data kind of the type, or items of this type if vector.</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.LambdaTransform">
+            <summary>
+            Utility class for creating transforms easily.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.LambdaTransform.LoadDelegate">
+            <summary>
+            A delegate type to create a persistent transform, utilized by the creation functions
+            as a callback to reconstitute a transform from binary data.
+            </summary>
+            <param name="reader">The binary stream from which the load is persisted</param>
+            <param name="env">The host environment</param>
+            <param name="input">The dataview this transform should be persisted on</param>
+            <returns>A transform of the input data, as parameterized by the binary input
+            stream</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.LambdaTransform.CreateMap``2(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.Action{``0,``1},Microsoft.ML.Runtime.Api.SchemaDefinition,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            This creates a transform that generates additional columns to the provided <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.
+            It does not change the number of rows, and can be seen as a result of application of the user's
+            function to every row of the input data. Similarly to the existing <see cref="T:Microsoft.ML.Runtime.Data.IDataTransform"/>'s,
+            this object can be treated as both the 'transformation' algorithm (which can be then applied to
+            different data by calling <see cref="M:Microsoft.ML.Runtime.Data.ITransformTemplate.ApplyToData(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView)"/>), and the transformed data (which can be
+            enumerated upon by calling <c>GetRowCursor</c> or <c>AsCursorable{TRow}</c>). If <typeparamref name="TSrc"/> or
+            <typeparamref name="TDst"/> implement the <see cref="T:System.IDisposable" /> interface, they will be disposed after use.
+            
+            This is a 'stateless non-savable' version of the transform.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="source">The input data to apply transformation to.</param>
+            <param name="mapAction">The function that performs the transformation. This must be a 'pure'
+            function which should only depend on the current <typeparamref name="TSrc"/> object and be
+            re-entrant: the system may call the function on some (or all) the input rows, may do this in
+            any order and from multiple threads at once. The function may utilize closures, as long as this
+            is done in re-entrant fashion and without side effects.</param>
+            <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is
+            inferred from the <typeparamref name="TSrc"/> type.</param>
+            <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is
+            inferred from the <typeparamref name="TDst"/> type.</param>
+            <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the
+            input <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.</typeparam>
+            <typeparam name="TDst">The type that describes what new columns are added by this transform.</typeparam>
+            <returns>A non-savable mapping transform from the input source to the destination</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.LambdaTransform.CreateMap``2(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.Action{``0,``1},System.Action{System.IO.BinaryWriter},Microsoft.ML.Runtime.Api.LambdaTransform.LoadDelegate,Microsoft.ML.Runtime.Api.SchemaDefinition,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            This creates a transform that generates additional columns to the provided <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.
+            It does not change the number of rows, and can be seen as a result of application of the user's
+            function to every row of the input data. Similarly to the existing <see cref="T:Microsoft.ML.Runtime.Data.IDataTransform"/>'s,
+            this object can be treated as both the 'transformation' algorithm (which can be then applied to
+            different data by calling <see cref="M:Microsoft.ML.Runtime.Data.ITransformTemplate.ApplyToData(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView)"/>), and the transformed data (which can  be
+            enumerated upon by calling <c>GetRowCursor</c> or <c>AsCursorable{TRow}</c>). If <typeparamref name="TSrc"/> or
+            <typeparamref name="TDst"/> implement the <see cref="T:System.IDisposable" /> interface, they will be disposed after use.
+            
+            This is a 'stateless savable' version of the transform: save and load routines must be provided.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="source">The input data to apply transformation to.</param>
+            <param name="mapAction">The function that performs the transformation. This must be a 'pure'
+            function which should only depend on the current <typeparamref name="TSrc"/> object and be
+            re-entrant: the system may call the function on some (or all) the input rows, may do this in
+            any order and from multiple threads at once. The function may utilize closures, as long as this
+            is done in re-entrant fashion and without side effects.</param>
+            <param name="saveAction">An action that allows us to save state to the serialization stream</param>
+            <param name="loadFunc">A function that given the serialization stream and a data view, returns
+            an <see cref="T:Microsoft.ML.Runtime.Data.ITransformTemplate"/>. The intent is, this returned object should itself be the same
+            as if we had recreated it using this method, but this is impossible to enforce. This transform
+            will do its best to save a description of this method through assembly qualified names of the defining
+            class, method name, and generic type parameters (if any), and then recover this same method on load,
+            so it should be a static non-lambda method that this assembly can legally call.</param>
+            <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is
+            inferred from the <typeparamref name="TSrc"/> type.</param>
+            <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is
+            inferred from the <typeparamref name="TDst"/> type.</param>
+            <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the
+            input <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.</typeparam>
+            <typeparam name="TDst">The type that describes what new columns are added by this transform.</typeparam>
+            <returns>A savable mapping transform from the input source to the destination</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.LambdaTransform.CreateMap``3(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.Action{``0,``1,``2},System.Action{``2},Microsoft.ML.Runtime.Api.SchemaDefinition,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            This is a 'stateful non-savable' version of the map transform: the mapping function is guaranteed to be invoked once per
+            every row of the data set, in sequence; one user-defined state object will be allocated per cursor and passed to the 
+            map function every time. If <typeparamref name="TSrc"/>, <typeparamref name="TDst"/>, or
+            <typeparamref name="TState"/> implement the <see cref="T:System.IDisposable" /> interface, they will be disposed after use.
+            </summary>
+            <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the
+            input <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.</typeparam>
+            <typeparam name="TState">The type of the state object to allocate per cursor.</typeparam>
+            <typeparam name="TDst">The type that describes what new columns are added by this transform.</typeparam>
+            <param name="env">The host environment to use.</param>
+            <param name="source">The input data to apply transformation to.</param>
+            <param name="mapAction">The function that performs the transformation. The function should transform its <typeparamref name="TSrc"/>
+            argument into its <typeparamref name="TDst"/> argument and can utilize the per-cursor <typeparamref name="TState"/> state.</param>
+            <param name="initStateAction">The function that is called once per cursor to initialize state. Can be null.</param>
+            <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is
+            inferred from the <typeparamref name="TSrc"/> type.</param>
+            <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is
+            inferred from the <typeparamref name="TDst"/> type.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.LambdaTransform.CreateMap``3(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.Action{``0,``1,``2},System.Action{``2},System.Action{System.IO.BinaryWriter},Microsoft.ML.Runtime.Api.LambdaTransform.LoadDelegate,Microsoft.ML.Runtime.Api.SchemaDefinition,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            This is a 'stateful savable' version of the map transform: the mapping function is guaranteed to be invoked once per
+            every row of the data set, in sequence (non-parallelizable); one user-defined state object will be allocated per cursor and passed to the 
+            map function every time; save and load routines must be provided. If <typeparamref name="TSrc"/>, <typeparamref name="TDst"/>,
+            or <typeparamref name="TState"/> implement the <see cref="T:System.IDisposable" /> interface, they will be disposed after use.
+            </summary>
+            <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the
+            input <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.</typeparam>
+            <typeparam name="TState">The type of the state object to allocate per cursor.</typeparam>
+            <typeparam name="TDst">The type that describes what new columns are added by this transform.</typeparam>
+            <param name="env">The host environment to use.</param>
+            <param name="source">The input data to apply transformation to.</param>
+            <param name="mapAction">The function that performs the transformation. The function should transform its <typeparamref name="TSrc"/>
+            <param name="initStateAction">The function that is called once per cursor to initialize state. Can be null.</param>
+            <param name="saveAction">An action that allows us to save state to the serialization stream</param>
+            <param name="loadFunc">A function that given the serialization stream and a data view, returns
+            an <see cref="T:Microsoft.ML.Runtime.Data.ITransformTemplate"/>. The intent is, this returned object should itself be the same
+            as if we had recreated it using this method, but this is impossible to enforce. This transform
+            will do its best to save a description of this method through assembly qualified names of the defining
+            class, method name, and generic type parameters (if any), and then recover this same method on load,
+            so it should be a static non-lambda method that this assembly can legally call.</param>
+            argument into its <typeparamref name="TDst"/> argument and can utilize the per-cursor <typeparamref name="TState"/> state.</param>
+            <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is
+            inferred from the <typeparamref name="TSrc"/> type.</param>
+            <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is
+            inferred from the <typeparamref name="TDst"/> type.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.LambdaTransform.CreateFilter``2(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.Func{``0,``1,System.Boolean},System.Action{``1},Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            This creates a filter transform that can 'accept' or 'decline' any row of the data based on the contents of the row
+            or state of the cursor.
+            This is a 'stateful non-savable' version of the filter: the filter function is guaranteed to be invoked once per
+            every row of the data set, in sequence (non-parallelizable); one user-defined state object will be allocated per cursor and passed to the 
+            filter function every time. 
+            If <typeparamref name="TSrc"/> or <typeparamref name="TState"/> implement the <see cref="T:System.IDisposable" /> interface, they will be disposed after use.
+            </summary>
+            <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the
+            input <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.</typeparam>
+            <typeparam name="TState">The type of the state object to allocate per cursor.</typeparam>
+            <param name="env">The host environment to use.</param>
+            <param name="source">The input data to apply transformation to.</param>
+            <param name="filterFunc">The user-defined function that determines whether to keep the row or discard it. First parameter
+            is the current row's contents, the second parameter is the cursor-specific state object.</param>
+            <param name="initStateAction">The function that is called once per cursor to initialize state. Can be null.</param>
+            <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is
+            inferred from the <typeparamref name="TSrc"/> type.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.LambdaTransform.CreateFilter``2(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.Func{``0,``1,System.Boolean},System.Action{``1},System.Action{System.IO.BinaryWriter},Microsoft.ML.Runtime.Api.LambdaTransform.LoadDelegate,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            This creates a filter transform that can 'accept' or 'decline' any row of the data based on the contents of the row
+            or state of the cursor.
+            This is a 'stateful savable' version of the filter: the filter function is guaranteed to be invoked once per
+            every row of the data set, in sequence (non-parallelizable); one user-defined state object will be allocated per cursor and passed to the 
+            filter function every time; save and load routines must be provided.
+            If <typeparamref name="TSrc"/> or <typeparamref name="TState"/> implement the <see cref="T:System.IDisposable" /> interface, they will be disposed after use.
+            </summary>
+            <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the
+            input <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.</typeparam>
+            <typeparam name="TState">The type of the state object to allocate per cursor.</typeparam>
+            <param name="env">The host environment to use.</param>
+            <param name="source">The input data to apply transformation to.</param>
+            <param name="filterFunc">The user-defined function that determines whether to keep the row or discard it. First parameter
+            is the current row's contents, the second parameter is the cursor-specific state object.</param>
+            <param name="initStateAction">The function that is called once per cursor to initialize state. Can be null.</param>
+            <param name="saveAction">An action that allows us to save state to the serialization stream</param>
+            <param name="loadFunc">A function that given the serialization stream and a data view, returns
+            an <see cref="T:Microsoft.ML.Runtime.Data.ITransformTemplate"/>. The intent is, this returned object should itself be the same
+            as if we had recreated it using this method, but this is impossible to enforce. This transform
+            will do its best to save a description of this method through assembly qualified names of the defining
+            class, method name, and generic type parameters (if any), and then recover this same method on load,
+            so it should be a static non-lambda method that this assembly can legally call.</param>
+            <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is
+            inferred from the <typeparamref name="TSrc"/> type.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.LambdaTransformBase">
+            <summary>
+            Defines common ancestor for various flavors of lambda-based user-defined transforms that may or may not be 
+            serializable.
+            
+            In order for the transform to be serializable, the user should specify a save and load delegate.
+            Specifically, for this the user has to provide the following things: 
+             * a custom save action that serializes the transform 'state' to the binary writer.
+             * a custom load action that de-serializes the transform from the binary reader. This must be a public static method of a public class.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.LambdaTransformBase.#ctor(Microsoft.ML.Runtime.IHostEnvironment,System.String,Microsoft.ML.Runtime.Api.LambdaTransformBase)">
+            <summary>
+            The 'reapply' constructor.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.MapTransform`2">
+            <summary>
+            This transform generates additional columns to the provided <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.
+            It doesn't change the number of rows, and can be seen as a result of application of the user's function
+            to every row of the input data.
+            Similarly to the existing <see cref="T:Microsoft.ML.Runtime.Data.IDataTransform"/>'s, this object can be treated as both the 'transformation' algorithm
+            (which can be then applied to different data by calling <see cref="M:Microsoft.ML.Runtime.Api.MapTransform`2.ApplyToData(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView)"/>), and the transformed data (which can 
+            be enumerated upon by calling <c>GetRowCursor</c> or <c>AsCursorable{TRow}</c>).
+            </summary>
+            <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the input <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.</typeparam>
+            <typeparam name="TDst">The type that describes what new columns are added by this transform.</typeparam>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.MapTransform`2.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.Action{`0,`1},System.Action{System.IO.BinaryWriter},Microsoft.ML.Runtime.Api.LambdaTransform.LoadDelegate,Microsoft.ML.Runtime.Api.SchemaDefinition,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            Create a a map transform that is savable iff <paramref name="saveAction"/> and <paramref name="loadFunc"/> are 
+            not null. 
+            </summary>
+            <param name="env">The host environment</param>
+            <param name="source">The dataview upon which we construct the transform</param>
+            <param name="mapAction">The action by which we map source to destination columns</param>
+            <param name="saveAction">An action that allows us to save state to the serialization stream. May be
+            null simultaneously with <paramref name="loadFunc"/>.</param>
+            <param name="loadFunc">A function that given the serialization stream and a data view, returns
+            an <see cref="T:Microsoft.ML.Runtime.Data.ITransformTemplate"/>. The intent is, this returned object should itself be a
+            <see cref="T:Microsoft.ML.Runtime.Api.MapTransform`2"/>, but this is not strictly necessary. This delegate should be
+            a static non-lambda method that this assembly can legally call. May be null simultaneously with 
+            <paramref name="saveAction"/>.</param>
+            <param name="inputSchemaDefinition">The schema definition overrides for <typeparamref name="TSrc"/></param>
+            <param name="outputSchemaDefinition">The schema definition overrides for <typeparamref name="TDst"/></param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.MapTransform`2.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Api.MapTransform{`0,`1},Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            The 'reapply' constructor.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.MergedSchema">
+            <summary>
+            This is the schema that is obtained by adding columns from <see cref="T:Microsoft.ML.Runtime.Api.InternalSchemaDefinition"/> to the
+            existing schema with auto-hiding.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.BatchPredictionEngine`2">
+            <summary>
+            A class that runs the previously trained model (and the preceding transform pipeline) on the
+            in-memory data in batch mode.
+            This can also be used with trained pipelines that do not end with a predictor: in this case, the
+            'prediction' will be just the outcome of all the transformations.
+            </summary>
+            <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
+            <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.BatchPredictionEngine`2.Predict(System.Collections.Generic.IEnumerable{`0},System.Boolean)">
+            <summary>
+            Run the prediction pipe. This will enumerate the <paramref name="examples"/> exactly once, 
+            cache all the examples (by reference) into its internal representation and then run 
+            the transformation pipe.
+            </summary>
+            <param name="examples">The examples to run the prediction on.</param>
+            <param name="reuseRowObjects">If <c>true</c>, the engine will not allocate memory per output, and 
+            the returned <typeparamref name="TDst"/> objects will actually always be the same object. The user is
+            expected to clone the values himself if needed.</param>
+            <returns>The <see cref="T:System.Collections.Generic.IEnumerable`1"/> that contains all the pipeline results.</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.PipeEngine`1">
+            <summary>
+            Utility class to run the pipeline to completion and produce a strongly-typed IEnumerable as a result.
+            Doesn't allocate memory for every row: instead, yields the same row object on every step.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.PredictionEngine`2">
+            <summary>
+            A class that runs the previously trained model (and the preceding transform pipeline) on the
+            in-memory data, one example at a time.
+            This can also be used with trained pipelines that do not end with a predictor: in this case, the
+            'prediction' will be just the outcome of all the transformations.
+            This is essentially a wrapper for <see cref="T:Microsoft.ML.Runtime.Api.BatchPredictionEngine`2"/> that throws if 
+            more than one result is returned per call to <see cref="M:Microsoft.ML.Runtime.Api.PredictionEngine`2.Predict(`0)"/>.
+            </summary>
+            <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
+            <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.PredictionEngine`2.Predict(`0)">
+            <summary>
+            Run prediction pipeline on one example.
+            </summary>
+            <param name="example">The example to run on.</param>
+            <returns>The result of prediction. A new object is created for every call.</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.SimplePredictionEngine">
+            <summary>
+            This class encapsulates the 'classic' prediction problem, where the input is denoted by the float array of features,
+            and the output is a float score. For binary classification predictors that can output probability, there are output 
+            fields that report the predicted label and probability.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.SimplePredictionEngine.Prediction">
+            <summary>
+            The prediction output. For every field, if there are no column with the matched name in the scoring pipeline,
+            the field will be left intact by the engine (and keep 0 as value unless the user code changes it).
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.SimplePredictionEngine.#ctor(Microsoft.ML.Runtime.IHostEnvironment,System.IO.Stream,System.Int32,System.String)">
+            <summary>
+            Create a prediction engine.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="modelStream">The model stream to load pipeline from.</param>
+            <param name="nFeatures">Number of features.</param>
+            <param name="featureColumnName">Name of the features column.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.SimplePredictionEngine.Predict(System.Single[])">
+            <summary>
+            Score an example.
+            </summary>
+            <param name="features">The feature array of the example.</param>
+            <returns>The prediction object. New object is created on every call.</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.Predictor">
+            <summary>
+            An opaque 'holder' of the predictor, meant to insulate the user from the internal TLC predictor structure,
+            which is subject to change.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Api.Predictor.Pred">
+            <summary>
+            The actual predictor.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.Predictor.GetPredictorObject">
+            <summary>
+            A way for the user to extract the predictor object and 'delve into the underworld' of unsupported non-API methods.
+            This is needed, for instance, to inspect the weights of a predictor programmatically.
+            The intention is to expose most methods through the API and make usage of this method increasingly unnecessary.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.KeyTypeAttribute">
+            <summary>
+            Attach to a member of a class to indicate that the item type should be of class key.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Api.KeyTypeAttribute.Min">
+            <summary>
+            The minimum key value.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Api.KeyTypeAttribute.Count">
+            <summary>
+            The key count, if it is a known cardinality key.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Api.KeyTypeAttribute.Contiguous">
+            <summary>
+            Whether keys should be considered to be contiguous.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.KeyTypeAttribute.#ctor">
+            <summary>
+            Public KeyTypeAttribute constuctor.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.VectorTypeAttribute">
+            <summary>
+            Allows a member to be marked as a vector valued field, primarily allowing one to set
+            the dimensionality of the resulting array.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Api.VectorTypeAttribute.Dims">
+            <summary>
+            The length of the vectors from this vector valued field.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.ColumnAttribute">
+            <summary>
+            Describes column information such as name and the source columns indicies that this 
+            column encapsulates.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Api.ColumnAttribute.Name">
+            <summary>
+            Column name.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Api.ColumnAttribute.Ordinal">
+            <summary>
+            Contains positions of indices of source columns in the form 
+            of ranges. Examples of range: if we want to include just column 
+            with index 1 we can write the range as 1, if we want to include 
+            columns 1 to 10 then we can write the range as 1-10 and we want to include all the
+            columns from column with index 1 until end then we can write 1-*.
+            
+            This takes sequence of ranges that are comma seperated, example:
+            1,2-5,10-*
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.ColumnNameAttribute">
+            <summary>
+            Allows a member to specify its column name directly, as opposed to the default
+            behavior of using the member name as the column name.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Api.ColumnNameAttribute.Name">
+            <summary>
+            Column name.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ColumnNameAttribute.#ctor(System.String)">
+            <summary>
+            Allows one to specify a name to expose this column as, as opposed to simply
+            the field name.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.NoColumnAttribute">
+            <summary>
+            Mark this member as not being exposed as a column in the schema.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.CursorChannelAttribute">
+            <summary>
+            Mark a member that implements exactly IChannel as being permitted to receive 
+            channel information from an external channel.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.CursorChannelAttribute.TrySetCursorChannel``1(Microsoft.ML.Runtime.IExceptionContext,``0,Microsoft.ML.Runtime.IChannel)">
+            <summary>
+            When passed some object, and a channel, it attempts to pass the channel to the object. It
+            passes the channel to the object iff the object has exactly one field marked with the 
+            CursorChannelAttribute, and that field implements only the IChannel interface. 
+            
+            The function returns the modified object, as well as a boolean indicator of whether it was 
+            able to pass the channel to the object. 
+            </summary>
+            <param name="obj">The object that attempts to acquire the channel.</param>
+            <param name="channel">The channel to pass to the object.</param>
+            <param name="ectx">The exception context.</param>
+            <returns>1. A boolean indicator of whether the channel was sucessfully passed to the object.
+            2. The object passed in (only modified by the addition of the channel to the field
+            with the CursorChannelAttribute, if the channel was added sucessfully).</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.SchemaDefinition">
+            <summary>
+            This class defines a schema of a typed data view.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.SchemaDefinition.Column">
+            <summary>
+            One column of the data view.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Api.SchemaDefinition.Column.MemberName">
+            <summary>
+            The name of the member the column is taken from. The API
+            requires this to not be null, and a valid name of a member of
+            the type for which we are creating a schema.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Api.SchemaDefinition.Column.ColumnName">
+            <summary>
+            The name of the column that's created in the data view. If this
+            is null, the API uses the <see cref="P:Microsoft.ML.Runtime.Api.SchemaDefinition.Column.MemberName"/>.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Api.SchemaDefinition.Column.ColumnType">
+            <summary>
+            The column type. If this is null, the API attempts to derive a type
+            from the member's type.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Api.SchemaDefinition.Column.IsComputed">
+            <summary>
+            Whether the column is a computed type. 
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Api.SchemaDefinition.Column.Generator">
+            <summary>
+            The generator function. if the column is computed. 
+            </summary> 
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.SchemaDefinition.Column.AddMetadata``1(System.String,``0,Microsoft.ML.Runtime.Data.ColumnType)">
+            <summary>
+            Add metadata to the column.
+            </summary>
+            <typeparam name="T">Type of Metadata being added. Types suported as entries in columns
+            are also supported as entries in Metadata. Multiple metadata may be added to one column.
+            </typeparam>
+            <param name="kind">The string identifier of the metadata.</param>
+            <param name="value">Value of metadata.</param>
+            <param name="metadataType">Type of value.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.SchemaDefinition.Column.RemoveMetadata(System.String)">
+            <summary>
+            Remove metadata from the column if it exists.
+            </summary>
+            <param name="kind">The string identifier of the metadata. </param>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Api.SchemaDefinition.Column.GetMetadataTypes">
+            <summary>
+            Returns metadata kind and type associated with this column.
+            </summary>
+            <returns>A dictionary with the kind of the metadata as the key, and the
+            metadata type as the associated value.</returns>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Api.SchemaDefinition.Item(System.String)">
+            <summary>
+            Get or set the column definition by column name. 
+            If there's no such column:
+            - get returns null,
+            - set adds a new column.
+            If there's more than one column with the same name:
+            - get returns the first column,
+            - set replaces the first column.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.SchemaDefinition.Create(System.Type)">
+            <summary>
+            Create a schema definition by enumerating all public fields of the given type.
+            </summary>
+            <param name="userType">The type to base the schema on.</param>
+            <returns>The generated schema definition.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.SerializableLambdaTransform.Create(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Model.ModelLoadContext,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Creates an instance of the transform from a context.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.SerializableLambdaTransform.GetSerializedStaticDelegate(Microsoft.ML.Runtime.Api.LambdaTransform.LoadDelegate)">
+            <summary>
+            Given a single item function that should be a static method, this builds a serialized version of
+            that method that should be enough to "recover" it, assuming it is a "recoverable" method (recoverable
+            here is a loose definition, meaning that <see cref="M:Microsoft.ML.Runtime.Api.SerializableLambdaTransform.DeserializeStaticDelegateOrNull(Microsoft.ML.Runtime.IExceptionContext,System.Byte[],System.Exception@)"/> is capable
+            of creating it, which includes among other things that it's static, non-lambda, accessible to
+            this assembly, etc.). 
+            </summary>
+            <param name="func">The method that should be "recoverable"</param>
+            <returns>A string array describing the input method</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.SerializableLambdaTransform.DeserializeStaticDelegateOrNull(Microsoft.ML.Runtime.IExceptionContext,System.Byte[],System.Exception@)">
+            <summary>
+            This is essentially the inverse function to <see cref="M:Microsoft.ML.Runtime.Api.SerializableLambdaTransform.GetSerializedStaticDelegate(Microsoft.ML.Runtime.Api.LambdaTransform.LoadDelegate)"/>. If the function
+            is not recoverable for any reason, this will return <c>null</c>, and the error parameter will be set.
+            </summary>
+            <param name="ectx">Exception context.</param>
+            <param name="serialized">The serialized bytes, as returned by <see cref="M:Microsoft.ML.Runtime.Api.SerializableLambdaTransform.GetSerializedStaticDelegate(Microsoft.ML.Runtime.Api.LambdaTransform.LoadDelegate)"/></param>
+            <param name="inner">An exception the caller may raise as an inner exception if the return value is
+            <c>null</c>, else, this itself will be <c>null</c></param>
+            <returns>The recovered function wrapping the recovered method, or <c>null</c> if it could not
+            be created, for some reason</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.StatefulFilterTransform`3">
+            <summary>
+            This transform is similar to <see cref="T:Microsoft.ML.Runtime.Api.MapTransform`2"/>, but it allows per-cursor state, 
+            as well as the ability to 'accept' or 'filter out' some rows of the supplied <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.
+            The downside is that the provided lambda is eagerly called on every row (not lazily when needed), and
+            parallel cursors are not allowed.
+            </summary>
+            <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the input <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.</typeparam>
+            <typeparam name="TDst">The type that describes what new columns are added by this transform.</typeparam>
+            <typeparam name="TState">The type that describes per-cursor state.</typeparam>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.StatefulFilterTransform`3.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.Func{`0,`1,`2,System.Boolean},System.Action{`2},System.Action{System.IO.BinaryWriter},Microsoft.ML.Runtime.Api.LambdaTransform.LoadDelegate,Microsoft.ML.Runtime.Api.SchemaDefinition,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            Create a filter transform that is savable iff <paramref name="saveAction"/> and <paramref name="loadFunc"/> are 
+            not null. 
+            </summary>
+            <param name="env">The host environment</param>
+            <param name="source">The dataview upon which we construct the transform</param>
+            <param name="filterFunc">The function by which we transform source to destination columns and decide whether
+            to keep the row.</param>
+            <param name="initStateAction">The function that is called once per cursor to initialize state. Can be null.</param>
+            <param name="saveAction">An action that allows us to save state to the serialization stream. May be
+            null simultaneously with <paramref name="loadFunc"/>.</param>
+            <param name="loadFunc">A function that given the serialization stream and a data view, returns
+            an <see cref="T:Microsoft.ML.Runtime.Data.ITransformTemplate"/>. The intent is, this returned object should itself be a
+            <see cref="T:Microsoft.ML.Runtime.Api.MapTransform`2"/>, but this is not strictly necessary. This delegate should be
+            a static non-lambda method that this assembly can legally call. May be null simultaneously with 
+            <paramref name="saveAction"/>.</param>
+            <param name="inputSchemaDefinition">The schema definition overrides for <typeparamref name="TSrc"/></param>
+            <param name="outputSchemaDefinition">The schema definition overrides for <typeparamref name="TDst"/></param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.StatefulFilterTransform`3.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Api.StatefulFilterTransform{`0,`1,`2},Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            The 'reapply' constructor.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.IRow`1">
+            <summary>
+            This interface is an <see cref="T:Microsoft.ML.Runtime.Data.IRow"/> with 'strongly typed' binding.
+            It can populate the user-supplied object's fields with the values of the current row.
+            </summary>
+            <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.IRow`1.FillValues(`0)">
+            <summary>
+            Populates the fields of the user-supplied <paramref name="row"/> object with the values of the current row.
+            </summary>
+            <param name="row">The row object. Cannot be null.</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.IRowCursor`1">
+            <summary>
+            This interface provides cursoring through a <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/> via a 'strongly typed' binding.
+            It can populate the user-supplied object's fields with the values of the current row.
+            </summary>
+            <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.ICursorable`1">
+            <summary>
+            This interface allows to create strongly typed cursors over a <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.
+            </summary>
+            <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ICursorable`1.GetCursor">
+            <summary>
+            Get a new cursor.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.ICursorable`1.GetRandomizedCursor(System.Int32)">
+            <summary>
+            Get a new randomized cursor.
+            </summary>
+            <param name="randomSeed">The random seed to use.</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.TypedCursorable`1">
+            <summary>
+            Implementation of the strongly typed Cursorable.
+            Similarly to the 'DataView{T}, this class uses IL generation to create the 'poke' methods that 
+            write directly into the fields of the user-defined type.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.TypedCursorable`1.IsCompatibleType(Microsoft.ML.Runtime.Data.ColumnType,System.Reflection.FieldInfo)">
+            <summary>
+            Returns whether the column type <paramref name="colType"/> can be bound to field <paramref name="fieldInfo"/>.
+            They must both be vectors or scalars, and the raw data kind should match.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.TypedCursorable`1.GetCursor">
+            <summary>
+            Create and return a new cursor.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.TypedCursorable`1.GetRandomizedCursor(System.Int32)">
+            <summary>
+            Create and return a new randomized cursor.
+            </summary>
+            <param name="randomSeed">The random seed to use.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.TypedCursorable`1.GetCursor(System.Func{System.Int32,System.Boolean},System.Nullable{System.Int32})">
+            <summary>
+            Create a new cursor with additional active columns.
+            </summary>
+            <param name="additionalColumnsPredicate">Predicate that denotes which additional columns to include in the cursor,
+            in addition to the columns that are needed for populating the <typeparamref name="TRow"/> object.</param>
+            <param name="randomSeed">The random seed to use. If <c>null</c>, the cursor will be non-randomized.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.TypedCursorable`1.GetCursorSet(Microsoft.ML.Runtime.Data.IRowCursorConsolidator@,System.Func{System.Int32,System.Boolean},System.Int32,Microsoft.ML.Runtime.IRandom)">
+            <summary>
+            Create a set of cursors with additional active columns.
+            </summary>
+            <param name="consolidator">The consolidator for the original row cursors</param>
+            <param name="additionalColumnsPredicate">Predicate that denotes which additional columns to include in the cursor,
+            in addition to the columns that are needed for populating the <typeparamref name="TRow"/> object.</param>
+            <param name="n">Number of cursors to create</param>
+            <param name="rand">Random generator to use</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.TypedCursorable`1.Create(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.Boolean,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            Create a Cursorable object on a given data view.
+            </summary>
+            <param name="env">Host enviroment.</param>
+            <param name="data">The underlying data view.</param>
+            <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
+            <param name="schemaDefinition">The optional user-provided schema.</param>
+            <returns>The constructed Cursorable.</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Api.CursoringUtils">
+            <summary>
+            Utility methods that facilitate strongly-typed cursoring.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.CursoringUtils.AsCursorable``1(Microsoft.ML.Runtime.Data.IDataView,Microsoft.ML.Runtime.IHostEnvironment,System.Boolean,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            Generate a strongly-typed cursorable wrapper of the <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.
+            </summary>
+            <typeparam name="TRow">The user-defined row type.</typeparam>
+            <param name="data">The underlying data view.</param>
+            <param name="env">The environment.</param>
+            <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
+            <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
+            <returns>The cursorable wrapper of <paramref name="data"/>.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.CursoringUtils.AsCursorable``1(Microsoft.ML.Runtime.Data.IDataView,System.Boolean,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            Generate a strongly-typed cursorable wrapper of the <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/>.
+            </summary>
+            <typeparam name="TRow">The user-defined row type.</typeparam>
+            <param name="data">The underlying data view.</param>
+            <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
+            <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
+            <returns>The cursorable wrapper of <paramref name="data"/>.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.CursoringUtils.AsEnumerable``1(Microsoft.ML.Runtime.Data.IDataView,Microsoft.ML.Runtime.IHostEnvironment,System.Boolean,System.Boolean,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            Convert an <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/> into a strongly-typed <see cref="T:System.Collections.Generic.IEnumerable`1"/>.
+            </summary>
+            <typeparam name="TRow">The user-defined row type.</typeparam>
+            <param name="data">The underlying data view.</param>
+            <param name="env">The environment.</param>
+            <param name="reuseRowObject">Whether to return the same object on every row, or allocate a new one per row.</param>
+            <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
+            <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
+            <returns>The <see cref="T:System.Collections.Generic.IEnumerable`1"/> that holds the data in <paramref name="data"/>. It can be enumerated multiple times.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Api.CursoringUtils.AsEnumerable``1(Microsoft.ML.Runtime.Data.IDataView,System.Boolean,System.Boolean,Microsoft.ML.Runtime.Api.SchemaDefinition)">
+            <summary>
+            Convert an <see cref="T:Microsoft.ML.Runtime.Data.IDataView"/> into a strongly-typed <see cref="T:System.Collections.Generic.IEnumerable`1"/>.
+            </summary>
+            <typeparam name="TRow">The user-defined row type.</typeparam>
+            <param name="data">The underlying data view.</param>
+            <param name="reuseRowObject">Whether to return the same object on every row, or allocate a new one per row.</param>
+            <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
+            <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
+            <returns>The <see cref="T:System.Collections.Generic.IEnumerable`1"/> that holds the data in <paramref name="data"/>. It can be enumerated multiple times.</returns>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,249 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.ML.ResultProcessor</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult">
+            <summary>
+            The processed Results of a particular Learner
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult.PredictorList">
+            <summary>
+            list of ExperimentItemResult object belonging to a particular Learner
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult.LearnerName">
+            <summary>
+            Name of the Learner for which the rest of the properties are defined in this object
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult.SettingHeaderNames">
+            <summary>
+            Names of all the Settings which have been modified in the list of ExperimentItemResult
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult.ResultHeaderNames">
+            <summary>
+            Names of all the Result metrices which have been modified in the list of ExperimentItemResult
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult.DefaultSettings">
+            <summary>
+            The default value of all the settigs specified in the SettingHeaderNames field
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult.SameHeaderValues">
+            <summary>
+            List of all the Field names and values which are the same throughout the DataGrid
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult.CheckForSameValues">
+            <summary>
+            Checks which all fields of the Predictor Result object would be having the same values
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult.AllignSettingHeaderNames(Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult)">
+            <summary>
+            Add the new Setting name in the ExperimentItemResult object to SettingHeaderNames field
+            </summary>
+            <param name="result">New ExperimentItemResult Object computed</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult.AllignResultHeaderNames(Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult)">
+            <summary>
+            Add the new Result name in the ExperimentItemResult object to ResultHeaderNames field
+            </summary>
+            <param name="result">New ExperimentItemResult Object computed</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult.GetDefaultSettingValues(Microsoft.ML.Runtime.IHostEnvironment,System.String,System.String[])">
+            <summary>
+            Get all the default settings for a particular learner(public method which calls the private method and sets the Defaultsetting field)
+            </summary>
+            <param name="env"></param>
+            <param name="predictorName">Learner name</param>
+            <param name="extraAssemblies"></param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult.GetDefaultSettings(Microsoft.ML.Runtime.IHostEnvironment,System.String,System.String[])">
+            <summary>
+            Get all the default settings for a particular learner
+            </summary>
+            <param name="env"></param>
+            <param name="predictorName">Learner name</param>
+            <param name="extraAssemblies"></param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult.Initialize(Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult)">
+            <summary>
+            Initialize all the public fields of the predictorResult object
+            </summary>
+            <param name="result">ExperimentItemResult object</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultMetric">
+            <summary>
+            All the members which define a particular result metric
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultMetric.#ctor(System.Single,System.Single)">
+            <summary>
+            Constructor initializing the object.
+            </summary>
+            <param name="metricValue">metric value</param>
+            <param name="deviation">Deviation, 0.0 if not passed</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult">
+            <summary>
+            A structure summarizing experiment results
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.Key">
+            <summary>
+            used in TLC GUI for mapping result to experimental run
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.Datafile">
+            <summary>
+            the path to data file from the command.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.TestDatafile">
+            <summary>
+            the path to the test data file from the command.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.Trainer">
+            <summary>
+            the trainer SubComponent from the command.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.InputFile">
+            <summary>
+            The name of the output file produced by the Experiment Run
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.Settings">
+            <summary>
+            the settings for the Experiment Run
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.Results">
+            <summary>
+            List of Result metrices for the particular Experiment Run
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.PerFoldResults">
+            <summary>
+            Metrics for individual folds -- each metric will contain data in AllValues field.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.Commandline">
+            <summary>
+            commandLine string
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.Time">
+            <summary>
+            Time taken for the Experiment run to complete
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.PhysicalMemory">
+            <summary>
+            Physical memory usage in MB for the Experiment run to complete
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.VirtualMemory">
+            <summary>
+            Virtual memory usage in MB for the Experiment run to complete
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.ExecutionDate">
+            <summary>
+            Date and time that the Experiement run completed
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.CustomizedTag">
+            <summary>
+            A user defined tag used in visualization report.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ExperimentItemResult.GetSettings">
+            <summary>
+            gets the list of settings in a List&lt;string&gt; form
+            </summary>
+            <returns>List of settings which are not default</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessorArguments">
+            <summary>
+            Command-line arguments
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessor">
+            <summary>
+            Given a pattern of output files, parse them!
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessor.ProcessOutputFile(Microsoft.ML.Runtime.IHostEnvironment,System.String,Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessorArguments)">
+            <summary>
+            Takes an output file as input and processes it to return a ExperimentItemResult object
+            </summary>
+            <returns>ExperimentItemResult object obtained after processing the output file</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessor.ProcessOutputFiles(Microsoft.ML.Runtime.IHostEnvironment,System.Collections.Generic.IEnumerable{System.String},Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessorArguments)">
+            <summary>
+            Takes an output file as input and processes it to return a ExperimentItemResult object
+            </summary>
+            <returns>ExperimentItemResult object obtained after processing the output file</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessor.GetPredictorObject(System.Collections.Generic.List{Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult},System.String,System.Boolean@)">
+            <summary>
+            Returns the PredictorResult object from the list corresponding to the Learname specified in the argument
+            </summary>
+            <param name="tempPredictorList">the list of PredictorResult objects</param>
+            <param name="learnerName">The learner name whose PredictorResult object is required</param>
+            <param name="newLearner"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessor.GetPerFoldResults(System.Collections.Generic.IList{System.String})">
+            <summary>
+            Extract per-fold results
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessor.AddFoldResults(System.Collections.Generic.IList{System.String})">
+            <summary>
+            Given output for a single fold, add its results
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessor.ClonePredictorResultList(System.Collections.Generic.List{Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult})">
+            <summary>
+            Makes a deep clone of the list of PredictorResultList Object
+            </summary>
+            <param name="predictorResultList">List of PredictorResult Object</param>
+            <returns>A new instance of List of PredictorResult</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessor.ClonePredictorResult(Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult)">
+            <summary>
+            Makes a deep clone of the list of PredictorResult Object
+            </summary>
+            <param name="predictorItem"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessor.Save(System.Collections.Generic.List{Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult},System.IO.Stream)">
+            <summary>
+            Save the List of Predictor object in Memory
+            </summary>
+            <param name="predictor">List of PredictorResult Object</param>
+            <param name="stream">Memory stream object</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessor.Save(Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.PredictorResult,System.IO.Stream)">
+            <summary>
+            Save the List of Predictor object in Memory
+            </summary>
+            <param name="predictor">List of PredictorResult Object</param>
+            <param name="stream">Memory stream object</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessor.Load(System.IO.Stream)">
+            <summary>
+            Deserialize a predictor, returning as an object
+            </summary>		
+        </member>
+    </members>
+</doc>

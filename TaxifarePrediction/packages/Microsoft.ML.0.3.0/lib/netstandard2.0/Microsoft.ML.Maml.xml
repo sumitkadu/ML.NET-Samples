@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.ML.Maml</name>
+    </assembly>
+    <members>
+        <member name="M:Microsoft.ML.Runtime.Tools.Maml.Main(System.String[])">
+            <summary>
+            Main command line entry point.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Tools.Maml.MainCore(Microsoft.ML.Runtime.Data.TlcEnvironment,System.String,System.Boolean)">
+            <summary>
+            The main method to invoke TLC, with some high level configuration options set.
+            </summary>
+            <param name="env">The environment used in this run of TLC, for the purpose of returning outputs.</param>
+            <param name="args">The command line arguments.</param>
+            <param name="alwaysPrintStacktrace">"Marked" exceptions are assumed to be sufficiently descriptive, so we
+            do not print stack traces for them to the console, and instead print these only to a log file.
+            However, throwing unmarked exceptions is considered a bug in TLC (even if due to bad user input),
+            so we always write . If set to true though, this executable will also print stack traces from the
+            marked exceptions as well.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Tools.Maml.PrintFullExceptionDetails(System.IO.TextWriter,System.Exception)">
+            <summary>
+            Prints exception type, message, stack trace and data for every exception in the
+            <see cref="P:System.Exception.InnerException"/> chain.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Tools.Maml.PrintFullExceptionDetails(Microsoft.ML.Runtime.IChannel,System.Exception)">
+            <summary>
+            Prints exception type, message, stack trace and data for every exception in the
+            <see cref="P:System.Exception.InnerException"/> chain.
+            </summary>
+        </member>
+    </members>
+</doc>

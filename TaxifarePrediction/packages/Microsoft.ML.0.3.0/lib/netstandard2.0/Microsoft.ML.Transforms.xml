@@ -1,0 +1,2310 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.ML.Transforms</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.ML.Runtime.Data.BootstrapSampleTransform">
+            <summary>
+            This class approximates bootstrap sampling of a dataview.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.CategoricalHashTransform.Arguments">
+            <summary>
+            This class is a merger of <see cref="T:Microsoft.ML.Runtime.Data.HashTransform.Arguments"/> and <see cref="T:Microsoft.ML.Runtime.Data.KeyToVectorTransform.Arguments"/>
+            with join option removed
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.CategoricalTransform">
+            <summary>
+            Categorical trans.
+            Each column can specify an output kind, Bag, Ind, or Key.
+            Notes:
+            * Each column builds/uses exactly one "vocabulary" (dictionary).
+            * The Key output kind produces integer values and KeyType columns.
+            * The Key value is the one-based index of the slot set in the Ind/Bag options.
+            * In the Key option, not found is assigned the value zero.
+            * In the Ind/Bag options, not found results in an all zero bit vector.
+            * Ind and Bag differ simply in how the bit-vectors generated from individual slots are aggregated:
+              for Ind they are concatenated and for Bag they are added.
+            * When the source column is a singleton, the Ind and Bag options are identical.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.CountFeatureSelectionTransform">
+            <summary>
+            Selects the slots for which the count of non-default values is greater than a threshold.
+            Uses a set of aggregators to count the number of non-default values for each slot and
+            instantiates a DropSlots transform to actually drop the slots.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.CountFeatureSelectionTransform.Create(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.CountFeatureSelectionTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Create method corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.CountFeatureSelectionUtils.Train(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.String[],System.Int32[]@)">
+            <summary>
+            Returns the feature selection scores for each slot of each column.
+            </summary>
+            <param name="env">The host environment.</param>
+            <param name="input">The input dataview.</param>
+            <param name="columns">The columns for which to compute the feature selection scores.</param>
+            <param name="colSizes">Outputs an array containing the vector sizes of the input columns</param>
+            <returns>A list of scores.</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.SignatureFourierDistributionSampler">
+            <summary>
+            Signature for an IFourierDistributionSampler constructor.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.LpNormNormalizerTransform">
+            <summary>
+            Lp-Norm (vector/row-wise) normalization transform. Has the following two set of arguments:
+            1- Lp-Norm normalizer arguments:
+               Normalize rows individually by rescaling them to unit norm (L2, L1 or LInf).
+               Performs the following operation on a vector X:
+                    Y = (X - M) / D, where M is mean and D is either L2 norm, L1 norm or LInf norm.
+               Scaling inputs to unit norms is a common operation for text classification or clustering.
+            2- Global contrast normalization (GCN) arguments:
+               Performs the following operation on a vector X:
+                    Y = (s * X - M) / D, where s is a scale, M is mean and D is either L2 norm or standard deviation.
+               Usage examples and Matlab code:
+               <see href="http://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf"/>
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.LpNormNormalizerTransform.NormalizerKind">
+            <summary>
+            The kind of unit norm vectors are rescaled to. This enumeration is serialized.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.LpNormNormalizerTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.LpNormNormalizerTransform.GcnArguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public constructor corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.LpNormNormalizerTransform.StdDev(System.Single[],System.Int32,System.Int32)">
+            <summary>
+            Compute Standard Deviation. In case of both subMean and useStd are true, we technically need to compute variance
+            based on centered values (i.e. after subtracting the mean). But since the centered
+            values mean is approximately zero, we can use variance of non-centered values.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.LpNormNormalizerTransform.StdDev(System.Single[],System.Int32,System.Int32,System.Single)">
+            <summary>
+            Compute Standard Deviation.
+            We have two overloads of StdDev instead of one with <see cref="T:System.Nullable`1"/> mean for perf reasons.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.LpNormNormalizerTransform.L2Norm(System.Single[],System.Int32,System.Single)">
+            <summary>
+            Compute L2-norm. L2-norm computation doesn't subtract the mean from the source values.
+            However, we substract the mean here in case subMean is true (if subMean is false, mean is zero).
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.LpNormNormalizerTransform.L1Norm(System.Single[],System.Int32,System.Single)">
+            <summary>
+            Compute L1-norm. L1-norm computation doesn't subtract the mean from the source values.
+            However, we substract the mean here in case subMean is true (if subMean is false, mean is zero).
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.LpNormNormalizerTransform.LInfNorm(System.Single[],System.Int32,System.Single)">
+            <summary>
+            Compute LInf-norm. LInf-norm computation doesn't subtract the mean from the source values.
+            However, we substract the mean here in case subMean is true (if subMean is false, mean is zero).
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.GroupTransform">
+            <summary>
+            This transform essentially performs the following SQL-like operation:
+            SELECT GroupKey1, GroupKey2, ... GroupKeyK, LIST(Value1), LIST(Value2), ... LIST(ValueN)
+            FROM Data
+            GROUP BY GroupKey1, GroupKey2, ... GroupKeyK.
+            
+            It assumes that the group keys are contiguous (if a new group key sequence is encountered, the group is over).
+            The GroupKeyN and ValueN columns can be of any primitive types. The code requires that every raw type T of the group key column
+            is an <see cref="T:System.IEquatable`1"/>, which is currently true for all existing primitive types.
+            The produced ValueN columns will be variable-length vectors of the original value column types.
+            
+            The order of ValueN entries in the lists is preserved.
+            
+            Example:
+            User Item
+            Pete Book
+            Tom  Table
+            Tom  Kitten
+            Pete Chair
+            Pete Cup
+            
+            Result:
+            User Item
+            Pete [Book]
+            Tom  [Table, Kitten]
+            Pete [Chair, Cup] 
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.GroupTransform.GroupSchema">
+            <summary>
+            For group columns, the schema information is intact.
+            
+            For keep columns, the type is Vector of original type and variable length. 
+            The only metadata preserved is the KeyNames and IsNormalized.
+            
+            All other columns are dropped.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.GroupTransform.Cursor">
+            <summary>
+            This cursor will create two cursors on the input data view: 
+            - The leading cursor will activate all the group columns, and will advance until it hits the end of the contiguous group.
+            - The trailing cursor will activate all the requested columns, and will go through the group 
+                (as identified by the leading cursor), and aggregate the keep columns. 
+            
+            The getters are as follows:
+            - The group column getters are taken directly from the trailing cursor.
+            - The keep column getters are provided by the aggregators.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.GroupTransform.Cursor.GroupKeyColumnChecker">
+            <summary>
+            This class keeps track of the previous group key and tests the current group key against the previous one.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.GroupTransform.Cursor.KeepColumnAggregator">
+            <summary>
+            This class handles the aggregation of one 'keep' column into a vector. It wraps around an <see cref="T:Microsoft.ML.Runtime.Data.IRow"/>'s
+            column, reads the data and aggregates.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.HashJoinTransform">
+            <summary>
+            This transform hashes its input columns. Each column is hashed separately, and within each
+            column there is an option to specify which slots should be hashed together into one output slot.
+            This transform can be applied either to single valued columns or to known length vector columns.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.HashJoinTransform.ColumnInfoEx.GetItemType(System.Int32)">
+            <summary>
+            Constructs the correct KeyType for the given hash bits.
+            Because of array size limitation, if hashBits = 31, the key type is not contiguous (not transformable into indicator array)
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.HashJoinTransform.ComposeGetterOneToOne``1(Microsoft.ML.Runtime.Data.IRow,System.Int32)">
+            <summary>
+            Getter generator for inputs of type <typeparamref name="TSrc"/>
+            </summary>
+            <typeparam name="TSrc">Input type. Must be a non-vector</typeparam>
+            <param name="input">Row inout</param>
+            <param name="iinfo">Index of the getter</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.HashJoinTransform.ComposeGetterVecToVec``1(Microsoft.ML.Runtime.Data.IRow,System.Int32)">
+            <summary>
+            Getter generator for inputs of type <typeparamref name="TSrc"/>, where output type is a vector of hashes
+            </summary>
+            <typeparam name="TSrc">Input type. Must be a vector</typeparam>
+            <param name="input">Row input</param>
+            <param name="iinfo">Index of the getter</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.HashJoinTransform.ComposeGetterVecToOne``1(Microsoft.ML.Runtime.Data.IRow,System.Int32)">
+            <summary>
+            Getter generator for inputs of type <typeparamref name="TSrc"/>, where output type is a single hash
+            </summary>
+            <typeparam name="TSrc">Input type. Must be a vector</typeparam>
+            <param name="input">Row input</param>
+            <param name="iinfo">Index of the getter</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.HashJoinTransform.ComposeHashDelegate``1">
+            <summary>
+            Generic hash function
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.HashJoinTransform.ComposeFloatHashDelegate">
+            <summary>
+            Generate a specialized hash function for floats
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.HashJoinTransform.ComposeDoubleHashDelegate">
+            <summary>
+            Generate a specialized hash function for doubles
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.KeyToBinaryVectorTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.KeyToBinaryVectorTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public constructor corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.KeyToBinaryVectorTransform.ComputeType(Microsoft.ML.Runtime.Data.KeyToBinaryVectorTransform,Microsoft.ML.Runtime.Data.ISchema,System.Int32,Microsoft.ML.Runtime.Data.OneToOneTransformBase.ColInfo,Microsoft.ML.Runtime.Data.MetadataDispatcher,Microsoft.ML.Runtime.Data.VectorType@,System.Boolean@,System.Int32@)">
+            <summary>
+            Computes the column type and whether multiple indicator vectors need to be concatenated.
+            Also populates the metadata.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.KeyToBinaryVectorTransform.MakeGetterOne(Microsoft.ML.Runtime.Data.IRow,System.Int32)">
+            <summary>
+            This is for the scalar case.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.KeyToBinaryVectorTransform.MakeGetterInd(Microsoft.ML.Runtime.Data.IRow,System.Int32)">
+            <summary>
+            This is for the indicator case - vector input and outputs should be concatenated.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.LearnerFeatureSelectionTransform">
+            <summary>
+            Selects the slots for which the absolute value of the corresponding weight in a linear learner
+            is greater than a threshold.
+            Instantiates a DropSlots transform to actually drop the slots.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.LearnerFeatureSelectionTransform.Create(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.LearnerFeatureSelectionTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Create method corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.LearnerFeatureSelectionTransform.Train(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,Microsoft.ML.Runtime.Data.LearnerFeatureSelectionTransform.Arguments,Microsoft.ML.Runtime.Data.VBuffer{System.Single}@)">
+            <summary>
+            Returns a score for each slot of the features column.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.LoadTransform">
+            <summary>
+            Load specific transforms from the specified model file. Allows one to 'cherry pick' transforms from 
+            a serialized chain, or to apply a pre-trained transform to a different (but still compatible) data view.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.MissingValueIndicatorTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.MissingValueIndicatorTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public constructor corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionTransform">
+            <summary>
+            Selects the top k slots ordered by their mutual information with the label column.
+            Instantiates a DropSlots transform to actually drop the slots.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionTransform.Create(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Create method corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionTransform.ComputeThreshold(System.Single[][],System.Int32,System.Int32@)">
+            <summary>
+            Computes the threshold for the scores such that the top k slots are preserved.
+            If there are less than k scores greater than zero, the threshold is set to zero and
+            the tiedScoresToKeep is set to zero, so that we only keep scores strictly greater than zero.
+            </summary>
+            <param name="scores">The score for each column and each slot.</param>
+            <param name="topk">How many slots to preserve.</param>
+            <param name="tiedScoresToKeep">If there are ties, how many of them to keep.</param>
+            <returns>The threshold.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionUtils.Train(Microsoft.ML.Runtime.IHost,Microsoft.ML.Runtime.Data.IDataView,System.String,System.String[],System.Int32)">
+            <summary>
+            Returns the feature selection scores for each slot of each column.
+            </summary>
+            <param name="host">The host.</param>
+            <param name="input">The input dataview.</param>
+            <param name="labelColumnName">The label column.</param>
+            <param name="columns">The columns for which to compute the feature selection scores.</param>
+            <param name="numBins">The number of bins to use for numeric features.</param>
+            <returns>A list of scores for each column and each slot.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionUtils.Impl.ComputeMutualInformation(Microsoft.ML.Runtime.Data.Transposer,System.Int32)">
+            <summary>
+            Computes the mutual information for one column.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionUtils.Impl.ComputeMutualInformation``1(Microsoft.ML.Runtime.Data.Transposer,System.Int32,Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionUtils.Impl.Mapper{``0})">
+            <summary>
+            Computes the mutual information for one column.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionUtils.Impl.ComputeMutualInformation(Microsoft.ML.Runtime.Data.VBuffer{System.Int32}@,System.Int32,System.Int32)">
+            <summary>
+            Computes the mutual information for one slot.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionUtils.Impl.FillTable(Microsoft.ML.Runtime.Data.VBuffer{System.Int32}@,System.Int32,System.Int32)">
+            <summary>
+            Fills the contingency table.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionUtils.Impl.BinKeys``1(Microsoft.ML.Runtime.Data.ColumnType)">
+            <summary>
+            Maps from keys to ints.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionUtils.Impl.BinInts(Microsoft.ML.Runtime.Data.VBuffer{Microsoft.ML.Runtime.Data.DvInt4}@,Microsoft.ML.Runtime.Data.VBuffer{System.Int32}@,System.Int32,System.Int32@,System.Int32@)">
+            <summary>
+            Maps from DvInt4 to ints. NaNs (and only NaNs) are mapped to the first bin.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionUtils.Impl.BinSingles(Microsoft.ML.Runtime.Data.VBuffer{System.Single}@,Microsoft.ML.Runtime.Data.VBuffer{System.Int32}@,System.Int32,System.Int32@,System.Int32@)">
+            <summary>
+            Maps from Singles to ints. NaNs (and only NaNs) are mapped to the first bin.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionUtils.Impl.BinDoubles(Microsoft.ML.Runtime.Data.VBuffer{System.Double}@,Microsoft.ML.Runtime.Data.VBuffer{System.Int32}@,System.Int32,System.Int32@,System.Int32@)">
+            <summary>
+            Maps from Doubles to ints. NaNs (and only NaNs) are mapped to the first bin.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionUtils.CreateVectorMapper``2(Microsoft.ML.Runtime.Data.ValueMapper{``0,``1})">
+            <summary>
+            Given a mapper from T to int, creates a mapper from VBuffer{T} to VBuffer&lt;int&gt;.
+            Assumes that the mapper maps default(TSrc) to default(TDst) so that the returned mapper preserves sparsity.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NADropTransform">
+            <summary>
+            Transform to drop NAs from vector columns.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NADropTransform.GetIsNADelegate(Microsoft.ML.Runtime.Data.ColumnType)">
+            <summary>
+            Returns the isNA predicate for the respective type.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NAHandleTransform">
+            <summary>
+            This transform handles missing values in the input columns. For each input column, it creates an output column
+            where the missing values are replaced by one of these specified values:
+            - The default value of the appropriate type.
+            - The mean value of the appropriate type.
+            - The max value of the appropriate type.
+            - The min value of the appropriate type.
+            (The last three work only for numeric/time span/ DateTime columns).
+            The output column can also optionally include an indicator vector for which slots were missing in the input column
+            (this can be done only when the indicator vector type can be converted to the input column type, i.e. only for numeric columns).
+            
+            When computing the mean/max/min value, there is also an option to compute it over the whole column instead of per slot. This option
+            has a default value of true for variable length vectors, and false for known length vectors. It can be changed to true for known
+            length vectors, but it results in an error if changed to false for variable length vectors.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NAIndicatorTransform">
+            <summary>
+            This transform can transform either scalars or vectors (both fixed and variable size),
+            creating output columns that indicate corresponding NA values.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAIndicatorTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.NAIndicatorTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public constructor corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAIndicatorTransform.ComposeGetterOne(Microsoft.ML.Runtime.Data.IRow,System.Int32)">
+            <summary>
+            Getter generator for single valued inputs.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAIndicatorTransform.ComposeGetterOne``1(Microsoft.ML.Runtime.Data.IRow,System.Int32)">
+            <summary>
+             Tests if a value is NA for scalars.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAIndicatorTransform.ComposeGetterVec(Microsoft.ML.Runtime.Data.IRow,System.Int32)">
+            <summary>
+            Getter generator for vector valued inputs.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAIndicatorTransform.ComposeGetterVec``1(Microsoft.ML.Runtime.Data.IRow,System.Int32)">
+            <summary>
+             Tests if a value is NA for vectors.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAIndicatorTransform.FindNAs``1(Microsoft.ML.Runtime.Data.VBuffer{``0}@,Microsoft.ML.Runtime.Data.RefPredicate{``0},System.Boolean,System.Collections.Generic.List{System.Int32},System.Boolean@)">
+            <summary>
+            Adds all NAs (or non-NAs) to the indices List.  Whether NAs or non-NAs have been added is indicated by the bool sense.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAIndicatorTransform.FillValues(System.Int32,Microsoft.ML.Runtime.Data.VBuffer{Microsoft.ML.Runtime.Data.DvBool}@,System.Collections.Generic.List{System.Int32},System.Boolean)">
+            <summary>
+             Fills indicator values for vectors.  The indices is a list that either holds all of the NAs or all
+             of the non-NAs, indicated by sense being true or false respectively.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NAReplaceTransform">
+            <summary>
+            This transform can transform either scalars or vectors (both fixed and variable size),
+            creating output columns that are identical to the input columns except for replacing NA values
+            with either the default value, user input, or imputed values (min/max/mean are currently supported).
+            Imputation modes are supported for vectors both by slot and across all slots.
+            </summary>
+            REVIEW: May make sense to implement the transform template interface.
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAReplaceTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.NAReplaceTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public constructor corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAReplaceTransform.GetReplacementValues(Microsoft.ML.Runtime.Data.NAReplaceTransform.Arguments,System.Object[]@,System.Collections.BitArray[]@)">
+            <summary>
+            Fill the repValues array with the correct replacement values based on the user-given replacement kinds.
+            Vectors default to by-slot imputation unless otherwise specified, except for unknown sized vectors
+            which force across-slot imputation.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAReplaceTransform.GetIsNADelegate(Microsoft.ML.Runtime.Data.ColumnType)">
+            <summary>
+            Returns the isNA predicate for the respective type.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAReplaceTransform.GetSpecifiedValue(System.String,Microsoft.ML.Runtime.Data.ColumnType,System.Delegate)">
+            <summary>
+            Converts a string to its respective value in the corresponding type.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAReplaceTransform.ComposeGetterOne(Microsoft.ML.Runtime.Data.IRow,System.Int32)">
+            <summary>
+            Getter generator for single valued inputs.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAReplaceTransform.ComposeGetterOne``1(Microsoft.ML.Runtime.Data.IRow,System.Int32)">
+            <summary>
+             Replaces NA values for scalars.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAReplaceTransform.ComposeGetterVec(Microsoft.ML.Runtime.Data.IRow,System.Int32)">
+            <summary>
+            Getter generator for vector valued inputs.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAReplaceTransform.ComposeGetterVec``1(Microsoft.ML.Runtime.Data.IRow,System.Int32)">
+            <summary>
+             Replaces NA values for vectors.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAReplaceTransform.FillValues``1(Microsoft.ML.Runtime.Data.VBuffer{``0}@,Microsoft.ML.Runtime.Data.VBuffer{``0}@,Microsoft.ML.Runtime.Data.RefPredicate{``0},``0,System.Boolean)">
+            <summary>
+             Fills values for vectors where there is one replacement value.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NAReplaceTransform.FillValues``1(Microsoft.ML.Runtime.Data.VBuffer{``0}@,Microsoft.ML.Runtime.Data.VBuffer{``0}@,Microsoft.ML.Runtime.Data.RefPredicate{``0},``0[],System.Collections.BitArray)">
+            <summary>
+             Fills values for vectors where there is slot-wise replacement values.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NAReplaceTransform.StatAggregator">
+            <summary>
+            The base class for stat aggregators for imputing mean, min, and max for the NAReplaceTransform.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NAReplaceTransform.StatAggregator`2">
+            <summary>
+            The base class for stat aggregators with knowledge of types.
+            </summary>
+            <typeparam name="TValue">The type for the column being aggregated.</typeparam>
+            <typeparam name="TStat">The type of the stat being computed by the stat aggregator.</typeparam>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Data.NAReplaceTransform.StatAggregator`2.RowCount">
+            <summary>
+            Returns the number of times that ProcessRow has been called.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Data.NAReplaceTransform.StatAggregatorAcrossSlots`2.ValueCount">
+            <summary>
+            Returns the number of values that have been processed so far.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Data.NAReplaceTransform.MinMaxAggregatorAcrossSlots`2.ValuesProcessed">
+            <summary>
+            Returns the number of times that ProcessValue has been called.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NAReplaceTransform.MeanStatDouble">
+            <summary>
+            This is a mutable struct (so is evil). However, its scope is restricted
+            and the only instances are in a field or an array, so the mutation does
+            the right thing.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NAReplaceTransform.MeanStatInt">
+            <summary>
+            A mutable struct for keeping the appropriate statistics for mean calculations for IX types, TS, and DT,
+            whose scope is restricted and only exists as an instance in a field or an array, utilizing the mutation
+            of the struct correctly.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NAReplaceTransform.Long.Converter">
+            <summary>
+            The base class for conversions from types to long.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NormalizeTransform.Create(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.NormalizeTransform.MinMaxArguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public create method corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NormalizeTransform.Create(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.NormalizeTransform.MeanVarArguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public create method corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NormalizeTransform.Create(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.NormalizeTransform.LogMeanVarArguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public create method corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NormalizeTransform.Create(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.NormalizeTransform.BinArguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public create method corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NormalizeTransform.Create(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.NormalizeTransform.SupervisedBinArguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public create method corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.MinMaxDblAggregator">
+            <summary>
+            Base class for tracking min and max values for a vector valued column.
+            It tracks min, max, number of non-sparse values (vCount) and number of ProcessValue() calls (trainCount).
+            NaNs are ignored when updating min and max.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.MeanVarDblAggregator">
+            <summary>
+            Class for computing the mean and variance for a vector valued column.
+            It tracks the current mean and the M2 (sum of squared diffs of the values from the mean),
+            the number of NaNs and the number of non-zero elements.
+            Uses the algorithm described here: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.MinMaxSngAggregator">
+            <summary>
+            Base class for tracking min and max values for a vector valued column.
+            It tracks min, max, number of non-sparse values (vCount) and number of ProcessValue() calls (trainCount).
+            NaNs are ignored when updating min and max.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.MeanVarSngAggregator">
+            <summary>
+            Class for computing the mean and variance for a vector valued column.
+            It tracks the current mean and the M2 (sum of squared diffs of the values from the mean),
+            the number of NaNs and the number of non-zero elements.
+            Uses the algorithm described here: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.SignatureLoadColumnFunction">
+            <summary>
+            Signature for a repository based loader of a IColumnFunction
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.IColumnFunctionBuilder.ProcessValue">
+            <summary>
+            Trains on the current value.
+            </summary>
+            <returns>True if it can use more values for training.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.IColumnFunctionBuilder.CreateColumnFunction">
+            <summary>
+            Finishes training and returns a column function.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.IColumnAggregator`1">
+            <summary>
+            Interface to define an aggregate function over values
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.IColumnAggregator`1.ProcessValue(`0@)">
+            <summary>
+            Updates the aggregate function with a value
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.IColumnAggregator`1.Finish">
+            <summary>
+            Finishes the aggregation
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.ProduceIdTransform">
+            <summary>
+            Produces a column with the cursor's ID as a column. This can be useful for diagnostic purposes.
+            
+            This class will obviously generate different data given different IDs. So, if you save data to
+            some other file, then apply this transform to that dataview, it may of course have a different
+            result. This is distinct from most transforms that produce results based on data alone.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.RffTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.RffTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public constructor corresponding to <see cref="T:Microsoft.ML.Runtime.Data.SignatureDataTransform"/>.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.TermLookupTransform">
+            <summary>
+            This transform maps text values columns to new columns using a map dataset provided through its arguments.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.TermLookupTransform.ValueMap">
+            <summary>
+            Holds the values that the terms map to.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.TermLookupTransform.ValueMap`1">
+            <summary>
+            Holds the values that the terms map to - where the destination type is TRes.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.TermLookupTransform.ValueMap`1.Train(Microsoft.ML.Runtime.IExceptionContext,Microsoft.ML.Runtime.Data.IRowCursor,System.Int32,System.Int32)">
+            <summary>
+            Bind this value map to the given cursor for "training".
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.TermLookupTransform.ValueMap`1.GetGetter(Microsoft.ML.Runtime.Data.ValueGetter{Microsoft.ML.Runtime.Data.DvText})">
+            <summary>
+            Given the term getter, produce a value getter from this value map.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.TermLookupTransform.OneValueMap`1">
+            <summary>
+            Holds the values that the terms map to when the destination type is a PrimitiveType (non-vector).
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.TermLookupTransform.VecValueMap`1">
+            <summary>
+            Holds the values that the terms map to when the destination type is a VectorType.
+            TItem is the represtation type for the vector's ItemType.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.TermLookupTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.TermLookupTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public constructor corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NgramHashTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.NgramHashTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public constructor corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NgramHashTransform.InvertHashHelper.CallAllGetters(Microsoft.ML.Runtime.Data.IRow)">
+            <summary>
+            Construct an action that calls all the getters for a row, so as to easily force computation
+            of lazily computed values. This will have the side effect of calling the decorator.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NgramTransform.WeightingCriteria">
+            <summary>
+            Weighting criteria: a statistical measure used to evaluate how important a word is to a document in a corpus.
+            This enumeration is serialized.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NgramTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.NgramTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public constructor corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NgramIdFinder">
+            <summary>
+            This delegate represents a function that gets an ngram as input, and outputs the id of
+            the ngram and whether or not to continue processing ngrams.
+            </summary>
+            <param name="ngram">The array containing the ngram</param>
+            <param name="lim">The ngram is stored in ngram[0],...ngram[lim-1].</param>
+            <param name="icol">The index of the column the transform is applied to.</param>
+            <param name="more">True if processing should continue, false if it should stop.
+            It is true on input, so only needs to be set to false.</param>
+            <returns>The ngram slot if it was found, -1 otherwise.</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.TextTransform">
+            <summary>
+            A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts 
+            of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
+            integer index mapping through hashing) as an option.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.TextTransform.Language">
+            <summary>
+            Text language. This enumeration is serialized.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.TextTransform.TextNormKind">
+            <summary>
+            Text vector normalizer kind.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.TextTransform.Arguments">
+            <summary>
+            This class exposes <see cref="T:Microsoft.ML.Runtime.Data.NgramExtractorTransform"/>/<see cref="T:Microsoft.ML.Runtime.Data.NgramHashExtractorTransform"/> arguments.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.TextTransform.TransformApplierParams">
+            <summary>
+            A distilled version of the TextTransform Arguments, with all fields marked readonly and
+            only the exact set of information needed to construct the transforms preserved.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.SignatureNgramExtractorFactory">
+            <summary>
+            Signature for creating an INgramExtractorFactory.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.ExtractorColumn">
+            <summary>
+            A many-to-one column common to both <see cref="T:Microsoft.ML.Runtime.Data.NgramExtractorTransform"/> 
+            and <see cref="T:Microsoft.ML.Runtime.Data.NgramHashExtractorTransform"/>.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.WordBagTransform.TokenizeColumn">
+            <summary>
+            A vanilla implementation of OneToOneColumn that is used to represent the input of any tokenize
+            transform (a transform that implements ITokenizeTransform interface).
+            Note: Since WordBagTransform is a many-to-one column transform, for each WordBagTransform.Column
+            with multiple sources, ConcatTransform is applied first. The output of ConcatTransform is a
+            one-to-one column which is in turn the input to a tokenize transform.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.WordBagTransform.Arguments">
+            <summary>
+            This class is a merger of <see cref="T:Microsoft.ML.Runtime.Data.ITokenizeTransform"/>
+            and <see cref="T:Microsoft.ML.Runtime.Data.NgramExtractorTransform.ArgumentsBase"/> options.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NgramExtractorTransform">
+            <summary>
+            A transform that turns a collection of tokenized text (vector of DvText), or vectors of keys into numerical 
+            feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys-
+            of length 1-n).
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NgramExtractorTransform.ArgumentsBase">
+            <summary>
+            This class is a merger of <see cref="T:Microsoft.ML.Runtime.Data.TermTransform.Arguments"/> and 
+            <see cref="T:Microsoft.ML.Runtime.Data.NgramTransform.Arguments"/>, with the allLength option removed.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.TermLoaderArguments">
+            <summary>
+            Arguments for defining custom list of terms or data file containing the terms.
+            The class includes a subset of <see cref="T:Microsoft.ML.Runtime.Data.TermTransform"/>'s arguments.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.INgramExtractorFactory">
+            <summary>
+            An ngram extractor factory interface to create an ngram extractor transform.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.Data.INgramExtractorFactory.UseHashingTrick">
+            <summary>
+            Whether the extractor transform created by this factory uses the hashing trick 
+            (by using <see cref="T:Microsoft.ML.Runtime.Data.HashTransform"/> or <see cref="T:Microsoft.ML.Runtime.Data.NgramHashTransform"/>, for example).
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NgramExtractorFactory">
+            <summary>
+            An implementation of <see cref="T:Microsoft.ML.Runtime.Data.INgramExtractorFactory"/> to create <see cref="T:Microsoft.ML.Runtime.Data.NgramExtractorTransform"/>.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NgramHashExtractorFactory">
+            <summary>
+            An implementation of <see cref="T:Microsoft.ML.Runtime.Data.INgramExtractorFactory"/> to create <see cref="T:Microsoft.ML.Runtime.Data.NgramHashExtractorTransform"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.NgramExtractionUtils.GenerateUniqueSourceNames(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.ManyToOneColumn[],Microsoft.ML.Runtime.Data.ISchema)">
+            <summary>
+            Generates and returns unique names for columns source. Each element of the returned array is 
+            an array of unique source names per specific column.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.WordHashBagTransform.Arguments">
+            <summary>
+            This class is a merger of <see cref="T:Microsoft.ML.Runtime.Data.ITokenizeTransform"/>
+            and <see cref="T:Microsoft.ML.Runtime.Data.NgramExtractorTransform.ArgumentsBase"/> options.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NgramHashExtractorTransform">
+            <summary>
+            A transform that turns a collection of tokenized text (vector of DvText) into numerical feature vectors 
+            using the hashing trick.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.NgramHashExtractorTransform.ArgumentsBase">
+            <summary>
+            This class is a merger of <see cref="T:Microsoft.ML.Runtime.Data.HashTransform.Arguments"/> and 
+            <see cref="T:Microsoft.ML.Runtime.Data.NgramHashTransform.Arguments"/>, with the ordered option,
+            the rehashUnigrams option and the allLength option removed.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.SignatureTokenizeTransform">
+            <summary>
+            Signature for creating an ITokenizeTransform.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.DelimitedTokenizeTransform">
+            <summary>
+            The input for this transform is a DvText or a vector of DvTexts, and its output is a vector of DvTexts,
+            corresponding to the tokens in the input text, split using a set of user specified separator characters.
+            Empty strings and strings containing only spaces are dropped.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.DelimitedTokenizeTransform.ColInfoEx">
+            <summary>
+            Extra information for each column (in addition to ColumnInfo).
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.DelimitedTokenizeTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.DelimitedTokenizeTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public constructor corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.DelimitedTokenizeTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.DelimitedTokenizeTransform.TokenizeArguments,Microsoft.ML.Runtime.Data.IDataView,Microsoft.ML.Runtime.Data.OneToOneColumn[])">
+            <summary>
+            Public constructor corresponding to SignatureTokenizeTransform. It accepts arguments of type ArgumentsBase, 
+            and a separate array of columns (constructed from the caller -WordBag/WordHashBag- arguments).
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.UngroupTransform">
+            <summary>
+            This can be thought of as an inverse of <see cref="T:Microsoft.ML.Runtime.Data.GroupTransform"/>. For all specified vector columns 
+            ("pivot" columns), performs the "ungroup" (or "unroll") operation as outlined below.
+            
+            If the only pivot column is called P, and has size K, then for every row of the input we will produce 
+            K rows, that are identical in all columns except P. The column P will become a scalar column, and this 
+            column will hold all the original values of input's P, one value per row, in order. The order of columns 
+            will remain the same.
+            
+            Variable-length pivot columns are supported (including zero, which will eliminate the row from the result).
+            
+            Multiple pivot columns are also supported:
+            * A number of output rows is controlled by the 'mode' parameter. 
+                - outer: it is equal to the maximum length of pivot columns,
+                - inner: it is equal to the minimum length of pivot columns,
+                - first: it is equal to the length of the first pivot column.
+            * If a particular pivot column has size that is different than the number of output rows, the extra slots will
+            be ignored, and the missing slots will be 'padded' with default values.
+            
+            All metadata is preserved for the retained columns. For 'unrolled' columns, all known metadata
+            except slot names is preserved.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.UngroupTransform.SchemaImpl.GetActiveInput(System.Func{System.Int32,System.Boolean})">
+            <summary>
+            Return an array of active input columns given the target predicate.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.WhiteningTransform">
+            <summary>
+            Implements PCA (Principal Component Analysis) and ZCA (Zero phase Component Analysis) whitening.
+            The whitening process consists of 2 steps:
+            1. Decorrelation of the input data. Input data is assumed to have zero mean.
+            2. Rescale decorrelated features to have unit variance.
+            That is, PCA whitening is essentially just a PCA + rescale.
+            ZCA whitening tries to make resulting data to look more like input data by rotating it back to the 
+            original input space.
+            More information: <see href="http://ufldl.stanford.edu/wiki/index.php/Whitening"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.WhiteningTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.WhiteningTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public constructor corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.WhiteningTransform.DotProduct(System.Single[],System.Int32,System.Single[],System.Int32[],System.Int32)">
+            <summary>
+            Returns a dot product of dense vector 'a' starting from offset 'aOffset' and sparse vector 'b'
+            with first 'count' valid elements and their corresponding 'indices'.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Transforms.TextAnalytics">
+            <summary>
+            Entry points for text anylytics transforms.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.DataPipe.OptionalColumnTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.DataPipe.OptionalColumnTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public constructor corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.TextAnalytics.CharTokenizeTransform">
+            <summary>
+            Character-oriented tokenizer where text is considered a sequence of characters.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.TextAnalytics.CharTokenizeTransform.GetKeyValues(System.Int32,Microsoft.ML.Runtime.Data.VBuffer{Microsoft.ML.Runtime.Data.DvText}@)">
+            <summary>
+            Get the key values (chars) corresponding to keys in the output columns.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.TextAnalytics.LdaTransform">
+            <summary>
+            LightLDA transform: Big Topic Models on Modest Compute Clusters.
+            <see href="http://arxiv.org/abs/1412.1576">LightLDA</see> is an implementation of Latent Dirichlet Allocation (LDA).
+            Previous implementations of LDA such as SparseLDA or AliasLDA allow to achieve massive data and model scales,
+            for example models with tens of billions of parameters to be inferred from billions of documents.
+            However this requires using a cluster of thousands of machines with all ensuing costs to setup and maintain.
+            LightLDA solves this problem in a more cost-effective manner by providing an implementation 
+            that is efﬁcient enough for modest clusters with at most tens of machines... 
+            For more details please see original LightLDA paper: 
+            http://arxiv.org/abs/1412.1576
+            http://www.www2015.it/documents/proceedings/proceedings/p1351.pdf
+            and open source implementation: 
+            https://github.com/Microsoft/LightLDA
+            
+            See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.TestFramework/DataPipe/TestDataPipe.cs"/>
+            for an example on how to use LdaTransform.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.TextAnalytics.SentimentAnalyzingTransform.AliasIfNeeded(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.String[],System.Collections.Generic.KeyValuePair{System.String,System.String}[]@)">
+            <summary>
+            If any column names in <param name="colNames" /> are present in <param name="input" />, this
+            method will create a transform that copies them to temporary columns. It will populate <param name="hiddenNames" />
+            with an array of string pairs containing the original name and the generated temporary column name, respectively.
+            </summary>
+            <param name="env"></param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.TextAnalytics.SignatureStopWordsRemoverTransform">
+            <summary>
+            Signature for creating an IStopWordsRemoverTransform.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform">
+            <summary>
+            A Stopword remover transform based on language-specific lists of stop words (most common words)
+            from Office Named Entity Recognition project.
+            The transform is usually applied after tokenizing text, so it compares individual tokens
+            (case-insensitive comparison) to the stopwords.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform.Language">
+            <summary>
+            Stopwords language. This enumeration is serialized.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform.ColInfoEx.Bind(Microsoft.ML.Runtime.Data.ISchema,System.String,System.Int32@,System.Boolean)">
+            <summary>
+            Binds a text column with the given name using input schema and returns the column index.
+            Fails if there is no column with the given name or if the column type is not text.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.TextAnalytics.CustomStopWordsRemoverTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.TextAnalytics.CustomStopWordsRemoverTransform.LoaderArguments,Microsoft.ML.Runtime.Data.IDataView,Microsoft.ML.Runtime.Data.OneToOneColumn[])">
+            <summary>
+            Public constructor corresponding to SignatureStopWordsRemoverTransform. It accepts arguments of type LoaderArguments, 
+            and a separate array of columns (constructed by the caller -TextTransform- arguments).
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.TextAnalytics.TextNormalizerTransform">
+            <summary>
+            A text normalization transform that allows normalizing text case, removing diacritical marks, punctuation marks and/or numbers.
+            The transform operates on text input as well as vector of tokens/text (vector of DvText).
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode">
+            <summary>
+            Case normalization mode of text. This enumeration is serialized.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.TextAnalytics.TextNormalizerTransform.IsCombiningDiacritic(System.Char)">
+            <summary>
+            Whether a character is a combining diacritic character or not.
+            Combining diacritic characters are the set of diacritics intended to modify other characters.
+            The list is provided by Office NL team.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Transforms.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.Arabic">
+             <summary>
+               Looks up a localized string similar to ب
+            ب
+            بعد
+            حتى
+            حين
+            دون
+            صباح
+            في
+            قبل
+            لكن
+            مساء
+            مع
+            من
+            نحو
+            واكد
+            وفي
+            ومن
+            اطار
+            و
+            اثر
+            اجل
+            احد
+            اذا
+            اكثر
+            اكد
+            التي
+            الثاني
+            الثانية
+            الذاتي
+            الذي
+            الذين
+            السابق
+            الف
+            الماضي
+            المقبل
+            الوقت
+            اليوم
+            امس
+            انه
+            باسم
+            بان
+            برس
+            بسبب
+            بشكل
+            بعض
+            بن
+            به
+            بها
+            بين
+            تم
+            ثلاثة
+            ثم
+            جميع
+            حاليا
+            حوالى
+            حول
+            حيث
+            خلال
+            ذلك
+            زيارة
+            سنة
+            سنوات
+            شخصا
+            صفر
+            ضد
+            ضمن
+            عام
+            عاما
+            عدة
+            عدد
+            عدم
+            عشر
+            عشرة
+            على
+            عليه
+            عليها
+            عن
+            عند
+            عندما
+            غدا
+            غير
+            فان
+            فيه
+            فيها
+            قال
+            قد
+            قوة
+            كان
+            كانت
+            كل
+            كلم
+            كما
+            لا
+            لدى
+            لقا [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.Czech">
+             <summary>
+               Looks up a localized string similar to bude
+            budeš
+            byl
+            byla
+            byli
+            bylo
+            je
+            jsem
+            jsme
+            jsou
+            jste
+            aby
+            aj
+            ale
+            ani
+            asi
+            až
+            bez
+            bude-li
+            budeme
+            budeme-li
+            budete
+            budete-li
+            budeš-li
+            budou
+            budou-li
+            budu
+            budu-li
+            buď
+            buďme
+            buďte
+            by
+            byl-li
+            byla-li
+            bylas
+            byli-li
+            bylo-li
+            bylos
+            byls
+            byly
+            byly-li
+            byt
+            byv
+            byvše
+            byvši
+            být
+            býti
+            co
+            což
+            cz
+            další
+            design
+            dnes
+            do
+            email
+            ho
+            jak
+            jako
+            je-li
+            jeho
+            jej
+            jejich
+            její
+            jen
+            ještě
+            ji
+            jine
+            již
+            jsa
+            jsem-li
+            jsi
+            jsi-li
+            jsme-li
+            jsou-li
+            jsouc
+            jsouce
+            jste-li
+            kam
+            kde
+             [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.Danish">
+             <summary>
+               Looks up a localized string similar to af
+            andre
+            at
+            da
+            de
+            deres
+            dette
+            din
+            ej
+            en
+            ene
+            et
+            han
+            hans
+            i
+            ind
+            lille
+            ni
+            ny
+            otte
+            stor
+            store
+            syv
+            alle
+            andet
+            begge
+            den
+            denne
+            der
+            det
+            dig
+            dog
+            du
+            eller
+            end
+            eneste
+            enhver
+            fem
+            fire
+            flere
+            fleste
+            for
+            fordi
+            forrige
+            fra
+            få
+            før
+            god
+            har
+            hendes
+            her
+            hun
+            hvad
+            hvem
+            hver
+            hvilken
+            hvis
+            hvor
+            hvordan
+            hvorfor
+            hvornår
+            ikke
+            ingen
+            intet
+            jeg
+            jeres
+            kan
+            kom
+            kommer
+            lav
+            lidt
+            man
+            mand
+            mange
+            med
+            meget
+            men
+            mens
+            mere
+            mig
+            ned
+            nogen
+            noget
+            nyt
+            nær
+            næste
+            næsten
+             [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.Dutch">
+             <summary>
+               Looks up a localized string similar to aan
+            af
+            al
+            als
+            bij
+            dan
+            dat
+            die
+            dit
+            een
+            en
+            er
+            had
+            heb
+            hem
+            het
+            hij
+            hoe
+            hun
+            ik
+            in
+            is
+            je
+            kan
+            me
+            men
+            met
+            mij
+            nog
+            nu
+            of
+            ons
+            ook
+            te
+            tot
+            uit
+            van
+            was
+            wat
+            we
+            wel
+            wij
+            zal
+            ze
+            zei
+            zij
+            zo
+            zou
+            .
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.English">
+             <summary>
+               Looks up a localized string similar to a
+            about
+            above
+            above
+            across
+            after
+            afterwards
+            again
+            against
+            all
+            almost
+            alone
+            along
+            already
+            also
+            although
+            always
+            am
+            among
+            amongst
+            amoungst
+            amount
+            an
+            and
+            another
+            any
+            anyhow
+            anyone
+            anything
+            anyway
+            anywhere
+            are
+            around
+            as
+            at
+            back
+            be
+            became
+            because
+            become
+            becomes
+            becoming
+            been
+            before
+            beforehand
+            behind
+            being
+            below
+            beside
+            besides
+            between
+            beyond
+            both
+            bottom
+            but
+            by
+            call
+            can
+            cannot
+            cant
+            co
+            con
+            could
+            couldnt
+            cry
+            de
+            describe
+            detail
+            do
+            done
+            down
+            due
+            du [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.French">
+             <summary>
+               Looks up a localized string similar to de
+            des
+            d&apos;
+            la
+            du
+            l&apos;
+            et
+            à
+            en
+            sur
+            aux
+            par
+            pour
+            au
+            dans
+            un
+            est
+            été
+            a
+            une
+            sous
+            ou
+            pas
+            entre
+            qui
+            nº
+            lès
+            plus
+            il
+            y
+            que
+            contre
+            je
+            non
+            n&apos;
+            sans
+            vous
+            avec
+            ne
+            ce
+            son
+            ses
+            mon
+            moins
+            se
+            qu&apos;
+            moi
+            j&apos;
+            c&apos;
+            si
+            ma
+            s&apos;
+            être
+            tout
+            comme
+            sa
+            sont
+            ai
+            elle
+            autres
+            pendant
+            chez
+            mais
+            avant
+            nous
+            cette
+            après
+            vers
+            était
+            tous
+            autre
+            tu
+            très
+            même
+            ont
+            anti
+            puis
+            leur
+            où
+            lui
+            ça
+            suis
+            depuis
+            ni
+            mes
+            près
+            hors
+            outre
+            ils
+            votre
+            toi
+            lors
+            t&apos;
+            aussi
+            donc
+            ces
+            toute
+             [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.German">
+             <summary>
+               Looks up a localized string similar to a
+            ab
+            aber
+            aber
+            ach
+            acht
+            achte
+            achten
+            achter
+            achtes
+            ag
+            alle
+            allein
+            allem
+            allen
+            aller
+            allerdings
+            alles
+            allgemeinen
+            als
+            als
+            also
+            am
+            an
+            andere
+            anderen
+            andern
+            anders
+            au
+            auch
+            auch
+            auf
+            aus
+            ausser
+            außer
+            ausserdem
+            außerdem
+            b
+            bald
+            bei
+            beide
+            beiden
+            beim
+            beispiel
+            bekannt
+            bereits
+            besonders
+            besser
+            besten
+            bin
+            bis
+            bisher
+            bist
+            c
+            d
+            da
+            dabei
+            dadurch
+            dafür
+            dagegen
+            daher
+            dahin
+            dahinter
+            damals
+            damit
+            danach
+            daneben
+            dank
+            dann
+            daran
+            darauf
+            daraus
+            darf
+            darfst
+             [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.Italian">
+             <summary>
+               Looks up a localized string similar to a
+            adesso
+            ai
+            al
+            alla
+            allo
+            allora
+            altre
+            altri
+            altro
+            anche
+            ancora
+            avere
+            aveva
+            avevano
+            ben
+            buono
+            che
+            chi
+            cinque
+            comprare
+            con
+            consecutivi
+            consecutivo
+            cosa
+            cui
+            da
+            del
+            della
+            dello
+            dentro
+            deve
+            devo
+            di
+            doppio
+            due
+            e
+            ecco
+            fare
+            fine
+            fino
+            fra
+            gente
+            giù
+            ha
+            hai
+            hanno
+            ho
+            il
+            indietro
+            invece
+            io
+            la
+            lavoro
+            le
+            lei
+            lo
+            loro
+            lui
+            lungo
+            ma
+            me
+            meglio
+            molta
+            molti
+            molto
+            nei
+            nella
+            no
+            noi
+            nome
+            nostro
+            nove
+            nuovi
+            nuovo
+            o
+            oltre
+            ora
+            otto
+            peggio
+            pero
+            persone
+            più [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.Japanese">
+             <summary>
+               Looks up a localized string similar to これ
+            それ
+            あれ
+            この
+            その
+            あの
+            ここ
+            そこ
+            あそこ
+            こちら
+            どこ
+            だれ
+            なに
+            なん
+            何
+            私
+            貴方
+            貴方方
+            我々
+            私達
+            あの人
+            あのかた
+            彼女
+            彼
+            です
+            あります
+            おります
+            います
+            は
+            が
+            の
+            に
+            を
+            で
+            え
+            から
+            まで
+            より
+            も
+            どの
+            と
+            し
+            それで
+            しかし
+            .
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.Norwegian_Bokmal">
+             <summary>
+               Looks up a localized string similar to alle
+            andre
+            arbeid
+            av
+            begge
+            bort
+            bra
+            bruke
+            da
+            denne
+            der
+            deres
+            det
+            din
+            disse
+            du
+            eller
+            en
+            ene
+            eneste
+            enhver
+            enn
+            er
+            et
+            folk
+            for
+            fordi
+            forsøke
+            fra
+            få
+            før
+            først
+            gjorde
+            gjøre
+            god
+            gå
+            ha
+            hadde
+            han
+            hans
+            hennes
+            her
+            hva
+            hvem
+            hver
+            hvilken
+            hvis
+            hvor
+            hvordan
+            hvorfor
+            i
+            ikke
+            inn
+            innen
+            kan
+            kunne
+            lage
+            lang
+            lik
+            like
+            makt
+            mange
+            med
+            meg
+            meget
+            men
+            mens
+            mer
+            mest
+            min
+            mye
+            må
+            måte
+            navn
+            nei
+            ny
+            nå
+            når
+            og
+            også
+            om
+            opp
+            oss
+            over
+            part
+            punkt
+            på
+            rett
+            rikti [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.Polish">
+             <summary>
+               Looks up a localized string similar to ach
+            aj
+            albo
+            bardzo
+            bez
+            bo
+            być
+            ci
+            ciebie
+            cię
+            co
+            czy
+            daleko
+            dla
+            dlaczego
+            dlatego
+            do
+            dobrze
+            dokąd
+            dość
+            dużo
+            dwa
+            dwaj
+            dwie
+            dwoje
+            dzisiaj
+            dziś
+            gdyby
+            gdzie
+            go
+            ich
+            ile
+            im
+            inny
+            ja
+            jak
+            jakby
+            jaki
+            je
+            jeden
+            jedna
+            jedno
+            jego
+            jej
+            jemu
+            jest
+            jestem
+            jeśli
+            jeżeli
+            już
+            ją
+            każdy
+            kiedy
+            kierunku
+            kto
+            ku
+            lub
+            ma
+            mają
+            mam
+            mi
+            mnie
+            mną
+            moi
+            moja
+            moje
+            może
+            mu
+            my
+            mój
+            na
+            nam
+            nami
+            nas
+            nasi
+            nasz
+            nasza
+            nasze
+            natychmiast
+            nic
+            nich
+            nie
+            niego
+            niej
+            niemu
+            nigdy
+            n [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.Portuguese">
+             <summary>
+               Looks up a localized string similar to último
+            é
+            acerca
+            agora
+            algumas
+            alguns
+            ali
+            ambos
+            antes
+            apontar
+            aquela
+            aquelas
+            aquele
+            aqueles
+            aqui
+            atrás
+            bem
+            bom
+            cada
+            caminho
+            cima
+            com
+            como
+            comprido
+            conhecido
+            corrente
+            das
+            debaixo
+            dentro
+            desde
+            desligado
+            deve
+            devem
+            deverá
+            direita
+            diz
+            dizer
+            dois
+            dos
+            e
+            ela
+            ele
+            eles
+            em
+            enquanto
+            então
+            está
+            estão
+            estado
+            estar
+            estará
+            este
+            estes
+            esteve
+            estive
+            estivemos
+            estiveram
+            eu
+            fará
+            faz
+            fazer
+            fazia
+            fez
+            fim
+            foi
+            fora
+            horas
+            iniciar
+            inicio
+            ir
+            irá
+            isto
+            ligado
+            maio [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.Portuguese_Brazilian">
+             <summary>
+               Looks up a localized string similar to último
+            é
+            acerca
+            agora
+            algumas
+            alguns
+            ali
+            ambos
+            antes
+            apontar
+            aquela
+            aquelas
+            aquele
+            aqueles
+            aqui
+            atrás
+            bem
+            bom
+            cada
+            caminho
+            cima
+            com
+            como
+            comprido
+            conhecido
+            corrente
+            das
+            debaixo
+            dentro
+            desde
+            desligado
+            deve
+            devem
+            deverá
+            direita
+            diz
+            dizer
+            dois
+            dos
+            e
+            ela
+            ele
+            eles
+            em
+            enquanto
+            então
+            está
+            estão
+            estado
+            estar
+            estará
+            este
+            estes
+            esteve
+            estive
+            estivemos
+            estiveram
+            eu
+            fará
+            faz
+            fazer
+            fazia
+            fez
+            fim
+            foi
+            fora
+            horas
+            iniciar
+            inicio
+            ir
+            irá
+            isto
+            ligado
+            maio [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.Russian">
+             <summary>
+               Looks up a localized string similar to а
+            е
+            и
+            ж
+            м
+            о
+            на
+            не
+            ни
+            об
+            но
+            он
+            мне
+            мои
+            мож
+            она
+            они
+            оно
+            мной
+            много
+            многочисленное
+            многочисленная
+            многочисленные
+            многочисленный
+            мною
+            мой
+            мог
+            могут
+            можно
+            может
+            можхо
+            мор
+            моя
+            моё
+            мочь
+            над
+            нее
+            оба
+            нам
+            нем
+            нами
+            ними
+            мимо
+            немного
+            одной
+            одного
+            менее
+            однажды
+            однако
+            меня
+            нему
+            меньше
+            ней
+            наверху
+            него
+            ниже
+            мало
+            надо
+            один
+            одиннадцать
+            одиннадцатый
+            назад
+            наиболее
+            недавно
+            миллионов
+            недалеко
+            между
+            низко
+            меля
+            нельзя
+            нибудь
+            непрерывно
+            наконец
+            никогда
+            ник [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.Spanish">
+             <summary>
+               Looks up a localized string similar to ésa
+            ésta
+            éste
+            última
+            últimas
+            último
+            últimos
+            aún
+            a
+            la
+            vez
+            a.m.
+            abierto
+            abunda
+            acaba
+            además
+            ahora
+            al
+            algún
+            alguna
+            alguno
+            alrededor
+            alta
+            altas
+            alto
+            altos
+            am
+            ambas
+            ambos
+            antes
+            aquél
+            aquélla
+            aquí
+            aquel
+            aquella
+            aquellas
+            aquello
+            aquellos
+            así
+            atardecer
+            aunque
+            básicamente
+            b
+            c
+            cada
+            casi
+            celebran
+            centro
+            cercanía
+            cierta
+            ciertas
+            cierto
+            ciertos
+            común
+            comúnmente
+            como
+            complemento
+            complementos
+            completamente
+            comunes
+            con
+            conforme
+            considerable
+            considerada
+            consider [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+        <member name="P:Microsoft.ML.Transforms.Properties.Resources.Swedish">
+             <summary>
+               Looks up a localized string similar to aderton
+            adertonde
+            adjö
+            aldrig
+            alla
+            allas
+            allt
+            alltid
+            alltså
+            än
+            andra
+            andras
+            annan
+            annat
+            ännu
+            artonde
+            arton
+            åtminstone
+            att
+            åtta
+            åttio
+            åttionde
+            åttonde
+            av
+            även
+            båda
+            bådas
+            bakom
+            bara
+            bäst
+            bättre
+            behöva
+            behövas
+            behövde
+            behövt
+            beslut
+            beslutat
+            beslutit
+            bland
+            blev
+            bli
+            blir
+            blivit
+            bort
+            borta
+            bra
+            då
+            dag
+            dagar
+            dagarna
+            dagen
+            där
+            därför
+            de
+            del
+            delen
+            dem
+            den
+            deras
+            dess
+            det
+            detta
+            dig
+            din
+            dina
+            dit
+            ditt
+            dock
+            du
+            efter
+            eftersom
+            elfte
+            eller
+            elva
+            en
+            enk [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+    </members>
+</doc>

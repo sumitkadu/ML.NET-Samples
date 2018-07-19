@@ -1,0 +1,839 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.ML.UniversalModelFormat</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.OnnxMlReflection">
+            <summary>Holder for reflection information generated from onnx-ml.proto3</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.OnnxMlReflection.Descriptor">
+            <summary>File descriptor for onnx-ml.proto3</summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.Version">
+             <summary>
+             Versioning
+            
+             ONNX versioning is specified in docs/IR.md and elaborated on in docs/Versioning.md
+            
+             To be compatible with both proto2 and proto3, we will use a version number
+             that is not defined by the default value but an explicit enum number.
+             </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.Version.StartVersion">
+            <summary>
+            proto3 requires the first enum value to be zero.
+            We add this just to appease the compiler.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.Version.IrVersion20171010">
+            <summary>
+            The version field is always serialized and we will use it to store the
+            version that the  graph is generated from. This helps us set up version
+            control. 
+            For the IR, we are using simple numbers starting with with 0x00000001, 
+            which was the version we published on Oct 10, 2017.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.Version.IrVersion20171030">
+            <summary>
+            IR_VERSION 2 published on Oct 30, 2017
+            - Added type discriminator to AttributeProto to support proto3 users
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.Version.IrVersion">
+            <summary>
+            IR VERSION 3 published on Nov 3, 2017
+            - For operator versioning:
+               - Added new message OperatorSetIdProto
+               - Added opset_import in ModelProto
+            - For vendor extensions, added domain in NodeProto
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto">
+             <summary>
+             Attributes
+            
+             A named attribute containing either singular float, integer, string, graph,
+             and tensor values, or repeated float, integer, string, graph, and tensor values.
+             An AttributeProto MUST contain the name field, and *only one* of the
+             following content fields, effectively enforcing a C/C++ union equivalent.
+             </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.NameFieldNumber">
+            <summary>Field number for the "name" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.Name">
+            <summary>
+            The name field MUST be present for this version of the IR.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.RefAttrNameFieldNumber">
+            <summary>Field number for the "ref_attr_name" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.RefAttrName">
+            <summary>
+            if ref_attr_name is not empty, ref_attr_name is the attribute name in parent function.
+            In this case, this AttributeProto does not contain data, and it's a reference of attribute
+            in parent scope.
+            NOTE: This should ONLY be used in function (sub-graph). It's invalid to be used in main graph.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.DocStringFieldNumber">
+            <summary>Field number for the "doc_string" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.DocString">
+            <summary>
+            A human-readable documentation for this attribute. Markdown is allowed.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.TypeFieldNumber">
+            <summary>Field number for the "type" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.Type">
+            <summary>
+            The type field MUST be present for this version of the IR.
+            For 0.0.1 versions of the IR, this field was not defined, and
+            implementations needed to use has_field hueristics to determine
+            which value field was in use.  For IR_VERSION 0.0.2 or later, this
+            field MUST be set and match the f|i|s|t|... field in use.  This
+            change was made to accomodate proto3 implementations.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.FFieldNumber">
+            <summary>Field number for the "f" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.F">
+            <summary>
+            Exactly ONE of the following fields must be present for this version of the IR
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.IFieldNumber">
+            <summary>Field number for the "i" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.I">
+            <summary>
+            int
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.SFieldNumber">
+            <summary>Field number for the "s" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.S">
+            <summary>
+            UTF-8 string
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.TFieldNumber">
+            <summary>Field number for the "t" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.T">
+            <summary>
+            tensor value
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.GFieldNumber">
+            <summary>Field number for the "g" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.G">
+            <summary>
+            graph
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.FloatsFieldNumber">
+            <summary>Field number for the "floats" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.Floats">
+            <summary>
+            list of floats
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.IntsFieldNumber">
+            <summary>Field number for the "ints" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.Ints">
+            <summary>
+            list of ints
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.StringsFieldNumber">
+            <summary>Field number for the "strings" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.Strings">
+            <summary>
+            list of UTF-8 strings
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.TensorsFieldNumber">
+            <summary>Field number for the "tensors" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.Tensors">
+            <summary>
+            list of tensors
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.GraphsFieldNumber">
+            <summary>Field number for the "graphs" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.Graphs">
+            <summary>
+            list of graph
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.Types">
+            <summary>Container for nested types declared in the AttributeProto message type.</summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.AttributeProto.Types.AttributeType">
+            <summary>
+            Note: this enum is structurally identical to the OpSchema::AttrType
+            enum defined in schema.h.  If you rev one, you likely need to rev the other.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ValueInfoProto">
+            <summary>
+            Defines information on value, including the name, the type, and
+            the shape of the value.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ValueInfoProto.NameFieldNumber">
+            <summary>Field number for the "name" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ValueInfoProto.Name">
+            <summary>
+            This field MUST be present in this version of the IR.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ValueInfoProto.TypeFieldNumber">
+            <summary>Field number for the "type" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ValueInfoProto.Type">
+            <summary>
+            This field MUST be present in this version of the IR.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ValueInfoProto.DocStringFieldNumber">
+            <summary>Field number for the "doc_string" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ValueInfoProto.DocString">
+            <summary>
+            A human-readable documentation for this value. Markdown is allowed.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto">
+             <summary>
+             Nodes
+            
+             Computation graphs are made up of a DAG of nodes, which represent what is
+             commonly called a "layer" or "pipeline stage" in machine learning frameworks.
+            
+             For example, it can be a node of type "Conv" that takes in an image, a filter 
+             tensor and a bias tensor, and produces the convolved output.
+             </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto.InputFieldNumber">
+            <summary>Field number for the "input" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto.Input">
+            <summary>
+            namespace Value
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto.OutputFieldNumber">
+            <summary>Field number for the "output" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto.Output">
+            <summary>
+            namespace Value
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto.NameFieldNumber">
+            <summary>Field number for the "name" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto.Name">
+            <summary>
+            An optional identifier for this node in a graph.
+            This field MAY be absent in ths version of the IR.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto.OpTypeFieldNumber">
+            <summary>Field number for the "op_type" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto.OpType">
+            <summary>
+            The symbolic identifier of the Operator to execute.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto.DomainFieldNumber">
+            <summary>Field number for the "domain" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto.Domain">
+            <summary>
+            The domain of the OperatorSet that specifies the operator named by op_type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto.AttributeFieldNumber">
+            <summary>Field number for the "attribute" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto.Attribute">
+            <summary>
+            Additional named attributes.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto.DocStringFieldNumber">
+            <summary>Field number for the "doc_string" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.NodeProto.DocString">
+            <summary>
+            A human-readable documentation for this node. Markdown is allowed.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto">
+             <summary>
+             Models
+            
+             ModelProto is a top-level file/container format for bundling a ML model and
+             associating its computation graph with metadata.
+            
+             The semantics of the model are described by the associated GraphProto.
+             </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.IrVersionFieldNumber">
+            <summary>Field number for the "ir_version" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.IrVersion">
+            <summary>
+            The version of the IR this model targets. See Version enum above.
+            This field MUST be present.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.OpsetImportFieldNumber">
+            <summary>Field number for the "opset_import" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.OpsetImport">
+             <summary>
+             The OperatorSets this model relies on.
+             All ModelProtos MUST have at least one entry that
+             specifies which version of the ONNX OperatorSet is
+             being imported.
+            
+             All nodes in the ModelProto's graph will bind against the operator
+             with the same-domain/same-op_type operator with the HIGHEST version
+             in the referenced operator sets.
+             </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.ProducerNameFieldNumber">
+            <summary>Field number for the "producer_name" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.ProducerName">
+            <summary>
+            The name of the framework or tool used to generate this model.
+            This field SHOULD be present to indicate which implementation/tool/framework
+            emitted the model.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.ProducerVersionFieldNumber">
+            <summary>Field number for the "producer_version" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.ProducerVersion">
+            <summary>
+            The version of the framework or tool used to generate this model.
+            This field SHOULD be present to indicate which implementation/tool/framework
+            emitted the model.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.DomainFieldNumber">
+            <summary>Field number for the "domain" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.Domain">
+             <summary>
+             Domain name of the model.
+             We use reverse domain names as name space indicators. For example:
+             `com.facebook.fair` or `com.microsoft.cognitiveservices`
+            
+             Together with `model_version` and GraphProto.name, this forms the unique identity of
+             the graph.
+             </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.ModelVersionFieldNumber">
+            <summary>Field number for the "model_version" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.ModelVersion">
+            <summary>
+            The version of the graph encoded. See Version enum below.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.DocStringFieldNumber">
+            <summary>Field number for the "doc_string" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.DocString">
+            <summary>
+            A human-readable documentation for this model. Markdown is allowed.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.GraphFieldNumber">
+            <summary>Field number for the "graph" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.Graph">
+            <summary>
+            The parameterized graph that is evaluated to execute the model.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.MetadataPropsFieldNumber">
+            <summary>Field number for the "metadata_props" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.ModelProto.MetadataProps">
+            <summary>
+            Named metadata values; keys should be distinct.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.StringStringEntryProto">
+            <summary>
+            StringStringEntryProto follows the pattern for cross-proto-version maps.
+            See https://developers.google.com/protocol-buffers/docs/proto3#maps
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.StringStringEntryProto.KeyFieldNumber">
+            <summary>Field number for the "key" field.</summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.StringStringEntryProto.ValueFieldNumber">
+            <summary>Field number for the "value" field.</summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.GraphProto">
+             <summary>
+             Graphs
+            
+             A graph defines the computational logic of a model and is comprised of a parameterized 
+             list of nodes that form a directed acyclic graph based on their inputs and outputs.
+             This is the equivalent of the "network" or "graph" in many deep learning
+             frameworks.
+             </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.GraphProto.NodeFieldNumber">
+            <summary>Field number for the "node" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.GraphProto.Node">
+            <summary>
+            The nodes in the graph, sorted topologically.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.GraphProto.NameFieldNumber">
+            <summary>Field number for the "name" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.GraphProto.Name">
+            <summary>
+            The name of the graph.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.GraphProto.InitializerFieldNumber">
+            <summary>Field number for the "initializer" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.GraphProto.Initializer">
+            <summary>
+            A list of named tensor values, used to specify constant inputs of the graph.
+            Each TensorProto entry must have a distinct name (within the list) that
+            also appears in the input list.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.GraphProto.DocStringFieldNumber">
+            <summary>Field number for the "doc_string" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.GraphProto.DocString">
+            <summary>
+            A human-readable documentation for this graph. Markdown is allowed.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.GraphProto.InputFieldNumber">
+            <summary>Field number for the "input" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.GraphProto.Input">
+            <summary>
+            The inputs and outputs of the graph.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.GraphProto.OutputFieldNumber">
+            <summary>Field number for the "output" field.</summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.GraphProto.ValueInfoFieldNumber">
+            <summary>Field number for the "value_info" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.GraphProto.ValueInfo">
+            <summary>
+            Information for the values in the graph. The ValueInfoProto.name's
+            must be distinct. It is optional for a value to appear in value_info list.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto">
+             <summary>
+             Tensors
+            
+             A serialized tensor value.
+             </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.DimsFieldNumber">
+            <summary>Field number for the "dims" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Dims">
+            <summary>
+            The shape of the tensor.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.DataTypeFieldNumber">
+            <summary>Field number for the "data_type" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.DataType">
+            <summary>
+            The data type of the tensor.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.SegmentFieldNumber">
+            <summary>Field number for the "segment" field.</summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.FloatDataFieldNumber">
+            <summary>Field number for the "float_data" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.FloatData">
+            <summary>
+            For float and complex64 values
+            Complex64 tensors are encoded as a single array of floats,
+            with the real components appearing in odd numbered positions,
+            and the corresponding imaginary component apparing in the
+            subsequent even numbered position. (e.g., [1.0 + 2.0i, 3.0 + 4.0i]
+            is encoded as [1.0, 2.0 ,3.0 ,4.0]
+            When this field is present, the data_type field MUST be FLOAT or COMPLEX64.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Int32DataFieldNumber">
+            <summary>Field number for the "int32_data" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Int32Data">
+            <summary>
+            For int32, uint8, int8, uint16, int16, bool, and float16 values
+            float16 values must be bit-wise converted to an uint16_t prior
+            to writing to the buffer.
+            When this field is present, the data_type field MUST be
+            INT32, INT16, INT8, UINT16, INT8, BOOL, or FLOAT16
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.StringDataFieldNumber">
+            <summary>Field number for the "string_data" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.StringData">
+            <summary>
+            For strings.
+            Each element of string_data is a UTF-8 encoded Unicode
+            string. No trailing null, no leading BOM. The protobuf "string"
+            scalar type is not used to match ML community conventions.
+            When this field is present, the data_type field MUST be STRING
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Int64DataFieldNumber">
+            <summary>Field number for the "int64_data" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Int64Data">
+            <summary>
+            For int64.
+            When this field is present, the data_type field MUST be INT64
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.NameFieldNumber">
+            <summary>Field number for the "name" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Name">
+            <summary>
+            Optionally, a name for the tensor.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.DocStringFieldNumber">
+            <summary>Field number for the "doc_string" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.DocString">
+            <summary>
+            A human-readable documentation for this tensor. Markdown is allowed.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.RawDataFieldNumber">
+            <summary>Field number for the "raw_data" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.RawData">
+             <summary>
+             Serializations can either use one of the fields above, or use this
+             raw bytes field. The only exception is the string case, where one is
+             required to store the content in the repeated bytes string_data field.
+            
+             When this raw_data field is used to store tensor value, elements MUST
+             be stored in as fixed-width, little-endian order.
+             Floating-point data types MUST be stored in IEEE 754 format.
+             Complex64 elements must be written as two consecutive FLOAT values, real component first.
+             Complex128 elements must be written as two consecutive DOUBLE values, real component first.
+             Boolean type MUST be written one byte per tensor element (00000001 for true, 00000000 for false).
+            
+             Note: the advantage of specific field rather than the raw_data field is
+             that in some cases (e.g. int data), protobuf does a better packing via
+             variable length storage, and may lead to smaller binary footprint.
+             When this field is present, the data_type field MUST NOT be STRING or UNDEFINED
+             </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.DoubleDataFieldNumber">
+            <summary>Field number for the "double_data" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.DoubleData">
+            <summary>
+            For double
+            Complex64 tensors are encoded as a single array of doubles,
+            with the real components appearing in odd numbered positions,
+            and the corresponding imaginary component apparing in the
+            subsequent even numbered position. (e.g., [1.0 + 2.0i, 3.0 + 4.0i]
+            is encoded as [1.0, 2.0 ,3.0 ,4.0]
+            When this field is present, the data_type field MUST be DOUBLE or COMPLEX128
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Uint64DataFieldNumber">
+            <summary>Field number for the "uint64_data" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Uint64Data">
+            <summary>
+            For uint64 and uint32 values
+            When this field is present, the data_type field MUST be
+            UINT32 or UINT64
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types">
+            <summary>Container for nested types declared in the TensorProto message type.</summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.DataType.Float">
+            <summary>
+            Basic types.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.DataType.Uint8">
+            <summary>
+            uint8_t
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.DataType.Int8">
+            <summary>
+            int8_t
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.DataType.Uint16">
+            <summary>
+            uint16_t
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.DataType.Int16">
+            <summary>
+            int16_t
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.DataType.Int32">
+            <summary>
+            int32_t
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.DataType.Int64">
+            <summary>
+            int64_t
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.DataType.String">
+            <summary>
+            string
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.DataType.Bool">
+            <summary>
+            bool
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.DataType.Float16">
+            <summary>
+            Advanced types
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.DataType.Complex64">
+            <summary>
+            complex with float32 real and imaginary components
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.DataType.Complex128">
+            <summary>
+            complex with float64 real and imaginary components
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.Segment">
+            <summary>
+            For very large tensors, we may want to store them in chunks, in which
+            case the following fields will specify the segment that is stored in
+            the current TensorProto.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.Segment.BeginFieldNumber">
+            <summary>Field number for the "begin" field.</summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorProto.Types.Segment.EndFieldNumber">
+            <summary>Field number for the "end" field.</summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorShapeProto">
+            <summary>
+            Defines a tensor shape. A dimension can be either an integer value
+            or a symbolic variable. A symbolic variable represents an unknown
+            dimension.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorShapeProto.DimFieldNumber">
+            <summary>Field number for the "dim" field.</summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorShapeProto.Types">
+            <summary>Container for nested types declared in the TensorShapeProto message type.</summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorShapeProto.Types.Dimension.DimValueFieldNumber">
+            <summary>Field number for the "dim_value" field.</summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorShapeProto.Types.Dimension.DimParamFieldNumber">
+            <summary>Field number for the "dim_param" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorShapeProto.Types.Dimension.DimParam">
+            <summary>
+            namespace Shape
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorShapeProto.Types.Dimension.DenotationFieldNumber">
+            <summary>Field number for the "denotation" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorShapeProto.Types.Dimension.Denotation">
+            <summary>
+            Standard denotation can optionally be used to denote tensor
+            dimensions with standard semantic descriptions to ensure
+            that operations are applied to the correct axis of a tensor.
+            Refer to https://github.com/onnx/onnx/blob/master/docs/DimensionDenotation.md#denotation-definition
+            for pre-defined dimension denotations.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TensorShapeProto.Types.Dimension.ValueOneofCase">
+            <summary>Enum of possible cases for the "value" oneof.</summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto">
+             <summary>
+             Types
+            
+             The standard ONNX data types.
+             </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.TensorTypeFieldNumber">
+            <summary>Field number for the "tensor_type" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.TensorType">
+            <summary>
+            The type of a tensor.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.SequenceTypeFieldNumber">
+            <summary>Field number for the "sequence_type" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.SequenceType">
+            <summary>
+            The type of a sequence.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.MapTypeFieldNumber">
+            <summary>Field number for the "map_type" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.MapType">
+            <summary>
+            The type of a map.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.DenotationFieldNumber">
+            <summary>Field number for the "denotation" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.Denotation">
+            <summary>
+            An optional denotation can be used to denote the whole 
+            type with a standard semantic description as to what is 
+            stored inside. Refer to https://github.com/onnx/onnx/blob/master/docs/TypeDenotation.md#type-denotation-definition
+            for pre-defined type denotations.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.ValueOneofCase">
+            <summary>Enum of possible cases for the "value" oneof.</summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.Types">
+            <summary>Container for nested types declared in the TypeProto message type.</summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.Types.Tensor.ElemTypeFieldNumber">
+            <summary>Field number for the "elem_type" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.Types.Tensor.ElemType">
+            <summary>
+            This field MUST NOT have the value of UNDEFINED
+            This field MUST be present for this version of the IR.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.Types.Tensor.ShapeFieldNumber">
+            <summary>Field number for the "shape" field.</summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.Types.Sequence">
+            <summary>
+            repeated T
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.Types.Sequence.ElemTypeFieldNumber">
+            <summary>Field number for the "elem_type" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.Types.Sequence.ElemType">
+            <summary>
+            The type and optional shape of each element of the sequence.
+            This field MUST be present for this version of the IR.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.Types.Map">
+            <summary>
+            map&lt;K,V>
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.Types.Map.KeyTypeFieldNumber">
+            <summary>Field number for the "key_type" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.Types.Map.KeyType">
+            <summary>
+            This field MUST be present for this version of the IR.
+            This field MUST refer to an integral type ([U]INT{8|16|32|64}) or STRING
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.Types.Map.ValueTypeFieldNumber">
+            <summary>Field number for the "value_type" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.TypeProto.Types.Map.ValueType">
+            <summary>
+            This field MUST be present for this version of the IR.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.OperatorSetIdProto">
+             <summary>
+             Operator Sets
+            
+             OperatorSets are uniquely identified by a (domain, opset_version) pair.
+             </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.OperatorSetIdProto.DomainFieldNumber">
+            <summary>Field number for the "domain" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.OperatorSetIdProto.Domain">
+            <summary>
+            The domain of the operator set being identified.
+            The empty string ("") or absence of this field implies the operator
+            set that is defined as part of the ONNX specification.
+            This field MUST be present in this version of the IR when referring to any other operator set.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.OperatorSetIdProto.VersionFieldNumber">
+            <summary>Field number for the "version" field.</summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.UniversalModelFormat.Onnx.OperatorSetIdProto.Version">
+            <summary>
+            The version of the operator set being identified.
+            This field MUST be present in this version of the IR.
+            </summary>
+        </member>
+    </members>
+</doc>
