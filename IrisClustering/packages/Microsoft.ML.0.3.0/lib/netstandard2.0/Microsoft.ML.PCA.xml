@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.ML.PCA</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.ML.Runtime.PCA.RandomizedPcaTrainer">
+            <summary>
+            This trainer trains an approximate PCA using Randomized SVD algorithm
+            Reference: http://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf
+            </summary>
+            <remarks>
+            This PCA can be made into Kernel PCA by using Random Fourier Features transform
+            </remarks>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PCA.RandomizedPcaTrainer.PostProcess(Microsoft.ML.Runtime.Data.VBuffer{System.Single}[],System.Single[],System.Single[],System.Int32,System.Int32)">
+            <summary>
+            Modifies <paramref name="y"/> in place so it becomes <paramref name="y"/> * eigenvectors / eigenvalues.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PCA.PcaPredictor">
+            <summary>
+            An anomaly detector using PCA.
+            - The algorithm uses the top eigenvectors to approximate the subspace containing the normal class
+            - For each new instance, it computes the norm difference between the raw feature vector and the projected feature on that subspace.
+            - - If the error is close to 0, the instance is considered normal (non-anomaly).
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PCA.PcaPredictor.GetEigenVectors(Microsoft.ML.Runtime.Data.VBuffer{System.Single}[]@,System.Int32@)">
+            <summary>
+            Copies the top eigenvectors of the covariance matrix of the training data
+            into a set of buffers.
+            </summary>
+            <param name="vectors">A possibly reusable set of vectors, which will
+            be expanded as necessary to accomodate the data.</param>
+            <param name="rank">Set to the rank, which is also the logical length
+            of <paramref name="vectors"/>.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PCA.PcaPredictor.GetMean(Microsoft.ML.Runtime.Data.VBuffer{System.Single}@)">
+            <summary>
+            Copies the mean vector of the training data.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.Data.PcaTransform.#ctor(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.PcaTransform.Arguments,Microsoft.ML.Runtime.Data.IDataView)">
+            <summary>
+            Public constructor corresponding to SignatureDataTransform.
+            </summary>
+        </member>
+    </members>
+</doc>

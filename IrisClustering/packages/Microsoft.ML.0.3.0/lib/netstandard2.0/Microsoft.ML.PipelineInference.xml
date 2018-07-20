@@ -1,0 +1,404 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.ML.PipelineInference</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.AutoInference">
+            <summary>
+            Class for generating potential recipes/pipelines, testing them, and zeroing in on the best ones.
+            For now, only works with maximizing metrics (AUC, Accuracy, etc.).
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.AutoInference.LevelDependencyMap">
+            <summary>
+            Alias to refer to this construct by an easy name.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.AutoInference.DependencyMap">
+            <summary>
+            Alias to refer to this construct by an easy name.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.AutoInference.SupportedMetric">
+            <summary>
+            AutoInference will support metrics as they are added here.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.AutoInference.EntryPointGraphDef">
+            <summary>
+            Class for encapsulating an entrypoint experiment graph
+            and keeping track of the input and output nodes.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.AutoInference.EntryPointGraphDef.GetSubgraphFirstNodeDataVarName(Microsoft.ML.Runtime.IExceptionContext)">
+            <summary>
+            Get the name of the variable asssigned to the Data or Training Data input, based on what is the first node of the subgraph.
+            A better way to do this would be with a ICanBeSubGraphFirstNode common interface between ITransformInput and ITrainerInputs 
+            and a custom deserializer. 
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.AutoInference.RunSummary">
+            <summary>
+            Class containing some information about an exectuted pipeline.
+            These are analogous to IRunResult for smart sweepers.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.AutoInference.AutoMlMlState">
+            <summary>
+            Class that holds state for an autoML search-in-progress. Should be able to resume search, given this object.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.AutoInference.AutoMlMlState.ComputeSearchSpace(System.Int32,Microsoft.ML.Runtime.PipelineInference.RecipeInference.SuggestedRecipe.SuggestedLearner[],System.Func{Microsoft.ML.Runtime.Data.IDataView,Microsoft.ML.Runtime.PipelineInference.TransformInference.Arguments,Microsoft.ML.Runtime.PipelineInference.TransformInference.SuggestedTransform[]})">
+            <summary>
+            Search space is transforms X learners X hyperparameters.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.AutoInference.InferPipelines(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.PipelineInference.PipelineOptimizerBase,Microsoft.ML.Runtime.Data.IDataView,Microsoft.ML.Runtime.Data.IDataView,System.Int32,System.Int32,Microsoft.ML.Runtime.PipelineInference.AutoInference.SupportedMetric,Microsoft.ML.Runtime.PipelineInference.PipelinePattern@,Microsoft.ML.Runtime.PipelineInference.ITerminator,Microsoft.ML.Runtime.EntryPoints.MacroUtils.TrainerKinds)">
+            <summary>
+            The InferPipelines methods are just public portals to the internal function that handle different
+            types of data being passed in: training IDataView, path to training file, or train and test files.
+            </summary>        
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.DefaultsEngine">
+            <summary>
+            AutoML engine that goes through all lerners using defaults. Need to decide
+            how to handle which transforms to try.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.UniformRandomEngine">
+            <summary>
+            Example class of an autoML engine (a pipeline optimizer) that simply tries random enumeration.    
+            If we use a third-party solution for autoML, we can just implement a new wrapper for it as a 
+            PipelineOptimizerBase, and use our existing autoML body code to take advantage of it. This design 
+            should allow for easy development of new autoML methods.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.AutoMlUtils.AreColumnsConsistent(Microsoft.ML.Runtime.PipelineInference.TransformInference.SuggestedTransform[],Microsoft.ML.Runtime.PipelineInference.AutoInference.DependencyMap)">
+            <summary>
+            Using the dependencyMapping and included transforms, determines whether every
+            transform present only consumes columns produced by a lower- or same-level transform, 
+            or existed in the original dataset. Note, a column could be produced by a 
+            transform on the same level, such as in multipart (atomic group) transforms.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.AutoMlUtils.ValidationWrapper(Microsoft.ML.Runtime.PipelineInference.TransformInference.SuggestedTransform[],Microsoft.ML.Runtime.PipelineInference.AutoInference.DependencyMap)">
+            <summary>
+            Simple wrapper which allows the call signature to match the signature needed for the PipelineOptimizerBase interface.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.AutoMlUtils.GetExcludedColumnIndices(Microsoft.ML.Runtime.PipelineInference.TransformInference.SuggestedTransform[],Microsoft.ML.Runtime.Data.IDataView,Microsoft.ML.Runtime.PipelineInference.AutoInference.DependencyMap)">
+            <summary>
+            Using the dependencyMapping and included transforms, computes which subset of columns in dataSample
+            will be present in the final transformed dataset when only the transforms present are applied.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.AutoMlUtils.BuildAtomicIdDependencyGraph(Microsoft.ML.Runtime.PipelineInference.TransformInference.SuggestedTransform[])">
+            <summary>
+            Builds dependency dictionary of which atomic groups depend on which. Assumes that
+            a column will be produced by the highest level possible producing transform.
+            </summary>
+            <param name="allTransforms">The set of possible transforms for a dataset for all levels.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.AutoMlUtils.GetFinalFeatureConcat(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.Int32[],System.Int32,System.Int32)">
+            <summary>
+            Gets a final transform to concatenate all numeric columns into a "Features" vector column.
+            Note: May return empty set if Features column already present and is only relevant numeric column.
+            (In other words, if there would be nothing for that concatenate transform to do.)
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.AutoMlUtils.GetFinalFeatureConcat(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,Microsoft.ML.Runtime.PipelineInference.AutoInference.DependencyMap,Microsoft.ML.Runtime.PipelineInference.TransformInference.SuggestedTransform[],Microsoft.ML.Runtime.PipelineInference.TransformInference.SuggestedTransform[])">
+            <summary>
+            Exposed version of the method.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.AutoMlUtils.ComputeColumnResponsibilities(Microsoft.ML.Runtime.Data.IDataView,Microsoft.ML.Runtime.PipelineInference.TransformInference.SuggestedTransform[])">
+            <summary>
+            Creates a dictionary mapping column names to the transforms which could have produced them.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.AutoMlUtils.UpdateProperties(System.Object,Microsoft.ML.Runtime.EntryPoints.TlcModule.SweepableParamAttribute[])">
+            <summary>
+            Updates properties of entryPointObj instance based on the values in sweepParams
+            </summary>        
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.AutoMlUtils.PopulateSweepableParams(Microsoft.ML.Runtime.PipelineInference.RecipeInference.SuggestedRecipe.SuggestedLearner)">
+            <summary>
+            Updates properties of entryPointObj instance based on the values in sweepParams
+            </summary>        
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.AutoMlUtils.ConvertToSweepArgumentStrings(Microsoft.ML.Runtime.EntryPoints.TlcModule.SweepableParamAttribute[])">
+            <summary>
+            Method to convert set of sweepable hyperparameters into strings of a format understood
+            by the current smart hyperparameter sweepers.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.ColumnGroupingInference">
+            <summary>
+            This class incapsulates logic for grouping together the inferred columns of the text file based on their type
+            and purpose, and generating column names.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.ColumnGroupingInference.GroupingColumn">
+            <summary>
+            This is effectively a merger of <see cref="T:Microsoft.ML.Runtime.PipelineInference.PurposeInference.Column"/> and a <see cref="T:Microsoft.ML.Runtime.PipelineInference.ColumnTypeInference.Column"/>
+            with support for vector-value columns.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.ColumnGroupingInference.InferGroupingAndNames(Microsoft.ML.Runtime.IHostEnvironment,System.Boolean,Microsoft.ML.Runtime.PipelineInference.ColumnTypeInference.Column[],Microsoft.ML.Runtime.PipelineInference.PurposeInference.Column[])">
+            <summary>
+            Group together the single-valued columns with the same type and purpose and generate column names.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="hasHeader">Whether the original file had a header. 
+            If yes, the <see cref="F:Microsoft.ML.Runtime.PipelineInference.ColumnTypeInference.Column.SuggestedName"/> fields are used to generate the column
+            names, otherwise they are ignored.</param>
+            <param name="types">The (detected) column types.</param>
+            <param name="purposes">The (detected) column purposes. Must be parallel to <paramref name="types"/>.</param>
+            <returns>The struct containing an array of grouped columns specifications.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.ColumnGroupingInference.GetRange(System.Int32[])">
+            <summary>
+            Generates a range selector from the array of indices.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.ColumnGroupingInference.GetRange(System.String)">
+            <summary>
+            Generates individual indices from a string range selector.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.ColumnTypeInference">
+            <summary>
+            This class incapsulates logic for automatic inference of column types for the text file.
+            It also attempts to guess whether there is a header row.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.ColumnTypeInference.Experts">
+            <summary>
+            Current design is as follows: there's a sequence of 'experts' that each look at all the columns.
+            Every expert may or may not assign the 'answer' (suggested type) to a column. If the expert needs
+            some information about the column (for example, the column values), this information is lazily calculated
+            by the column object, not the expert itself, to allow the reuse of the same information by another
+            expert.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.ColumnTypeInference.InferTextFileColumnTypes(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IMultiStreamSource,Microsoft.ML.Runtime.PipelineInference.ColumnTypeInference.Arguments)">
+            <summary>
+            Auto-detect column types of the file.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.DatasetFeatureInference">
+            <summary>
+            Featurization ideas inspired from: 
+            http://aad.informatik.uni-freiburg.de/papers/15-NIPS-auto-sklearn-supplementary.pdf
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.DatasetFeatureInference.ColumnSchema">
+            <summary>
+            Meta features about column schema:
+            1) Number of features such as Text, Categorical, Numerical, counted in terms of slots.
+            2) Column meta data such as Name, DataKind, Purpose and slot indices.
+            3) Feature ratio: number of categorical columns to text feature columns, etc.
+            4) Count of columns and slots by column purpose.
+            5) Log of total feature count.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.DatasetFeatureInference.LabelFeatures">
+            <summary>
+            Meta features for Label columns:
+            1) Column info such as name, data kind, column purpose, slot indices.
+            2) Stats about label counts such as Min, Max counts, standard deviation, mean, median,
+               kurtosis, variance, min/max class probabilities.
+            3) Missing value count.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.DatasetFeatureInference.MissingValues">
+            <summary>
+            Meta features about missing values across the dataset.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.DatasetFeatureInference.ColumnFeatures">
+            <summary>
+            Meta features about columns:
+            For numeric column types it caculates mean, variance, kurtosis, min, max, median, standard deviation.
+            For non-numeric column types it caculates the same but over string length and number of spaces as seperate stats.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.ExperimentsGenerator.Sweep">
+            <summary>
+            Holds the sweep and the trainer for sweep commands.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.ExperimentsGenerator.Pattern">
+            <summary>
+            Pattern of the Sweep command.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.ExperimentsGenerator.TrainerSweeper">
+            <summary>
+            Sweep parameters for the trainer.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.IPipelineOptimizer">
+            <summary>
+            Interface that defines what an autoML engine looks like, so that it can plug into the
+            autoML body defined in this file. Will allow us to change autoML techniques or use third-
+            party services as needed, just by swapping out the pipeline optimizer used.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.ITerminator">
+            <summary>
+            Interface defining various stopping criteria for pipeline sweeps. 
+            This could include number of total iterations, compute time,
+            budget expended, etc. 
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.PipelinePattern">
+            <summary>
+            A runnable pipeline. Contains a learner and set of transforms,
+            along with a RunSummary if it has already been exectued.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.PipelinePattern.PipelineResultRow">
+            <summary>
+            Class for encapsulating the information returned in the output IDataView for a pipeline
+            that has been run through the TrainTest macro.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.PipelineInference.PipelinePattern.PipelineResultRow.MetricValue">
+            <summary>
+             The metric value of the test dataset result (always needed).
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.PipelineInference.PipelinePattern.PipelineResultRow.TrainingMetricValue">
+            <summary>
+             The metric value of the training dataset result (not always used or set).
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.PipelinePattern.ToEntryPointGraph(Microsoft.ML.Runtime.Experiment)">
+            <summary>
+            Constructs an entrypoint graph from the current pipeline.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.PipelinePattern.ToString">
+            <summary>
+            This method will return some indentifying string for the pipeline,
+            based on transforms, learner, and (eventually) hyperparameters. 
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.PipelinePattern.RunTrainTestExperiment(Microsoft.ML.Runtime.Data.IDataView,Microsoft.ML.Runtime.Data.IDataView,Microsoft.ML.Runtime.PipelineInference.AutoInference.SupportedMetric,Microsoft.ML.Runtime.EntryPoints.MacroUtils.TrainerKinds,System.Double@,System.Double@)">
+            <summary>
+            Runs a train-test experiment on the current pipeline, through entrypoints.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.PurposeInference">
+            <summary>
+            Automatic inference of column purposes for the data view. 
+            This is used in the context of text import wizard, but can be used outside as well.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.PurposeInference.IPurposeInferenceExpert">
+            <summary>
+            The design is the same as for <see cref="T:Microsoft.ML.Runtime.PipelineInference.ColumnTypeInference"/>: there's a sequence of 'experts' 
+            that each look at all the columns. Every expert may or may not assign the 'answer' (suggested purpose) 
+            to a column. If the expert needs some information about the column (for example, the column values), 
+            this information is lazily calculated by the column object, not the expert itself, to allow the reuse 
+            of the same information by another expert.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.PurposeInference.InferPurposes(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,System.Collections.Generic.IEnumerable{System.Int32},Microsoft.ML.Runtime.PipelineInference.PurposeInference.Arguments)">
+            <summary>
+            Auto-detect purpose for the data view columns.
+            </summary>
+            <param name="env">The host environment to use.</param>
+            <param name="data">The data to use for inference.</param>
+            <param name="columnIndices">Indices of columns that we're interested in.</param>
+            <param name="args">Additional arguments to inference.</param>
+            <returns>The result includes the array of auto-detected column purposes.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.RecipeInference.AllowedLearners(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.EntryPoints.MacroUtils.TrainerKinds)">
+            <summary>
+            Given a predictor type returns a set of all permissible learners (with their sweeper params, if defined).
+            </summary>
+            <returns>Array of viable learners.</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.TextFileContents">
+            <summary>
+            Utilities for various heuristics against text files. 
+            Currently, separator inference and column count detection.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.TextFileContents.TrySplitColumns(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IMultiStreamSource,System.String[],System.Nullable{System.Boolean},System.Nullable{System.Boolean},System.Boolean)">
+            <summary>
+            Attempt to detect text loader arguments.
+            The algorithm selects the first 'acceptable' set: the one that recognizes the same number of columns in at 
+            least <see cref="F:Microsoft.ML.Runtime.PipelineInference.TextFileContents.UniformColumnCountThreshold"/> of the sample's lines, 
+            and this number of columns is more than 1.
+            We sweep on separator, allow sparse and allow quote parameter.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.TextFileSample">
+            <summary>
+            This class holds an in-memory sample of the text file, and serves as an <see cref="T:Microsoft.ML.Runtime.Data.IMultiStreamSource"/> proxy to it.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.TextFileSample.CreateFromFullFile(Microsoft.ML.Runtime.IHostEnvironment,System.String)">
+            <summary>
+            Create a <see cref="T:Microsoft.ML.Runtime.PipelineInference.TextFileSample"/> by reading multiple chunks from the file (or other source) and 
+            then stitching them together. The algorithm is as follows:
+            0. If the source is not seekable, revert to <see cref="M:Microsoft.ML.Runtime.PipelineInference.TextFileSample.CreateFromHead(System.String)"/>.
+            1. If the file length is less than 2 * <see cref="F:Microsoft.ML.Runtime.PipelineInference.TextFileSample.BufferSizeMb"/>, revert to <see cref="M:Microsoft.ML.Runtime.PipelineInference.TextFileSample.CreateFromHead(System.String)"/>.
+            2. Read first <see cref="F:Microsoft.ML.Runtime.PipelineInference.TextFileSample.FirstChunkSizeMb"/> MB chunk. Determine average line length in the chunk.
+            3. Determine how large one chunk should be, and how many chunks there should be, to end up 
+            with <see cref="F:Microsoft.ML.Runtime.PipelineInference.TextFileSample.BufferSizeMb"/> * <see cref="F:Microsoft.ML.Runtime.PipelineInference.TextFileSample.OversamplingRate"/> MB worth of lines.
+            4. Determine seek locations and read the chunks.
+            5. Stitch and return a <see cref="T:Microsoft.ML.Runtime.PipelineInference.TextFileSample"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.TextFileSample.CreateFromHead(System.String)">
+            <summary>
+            Create a <see cref="T:Microsoft.ML.Runtime.PipelineInference.TextFileSample"/> by reading one chunk from the beginning.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.TextFileSample.StitchChunks(System.Boolean,System.Byte[][])">
+            <summary>
+            Given an array of chunks of the text file, of which the first chunk is the head,
+            this method trims incomplete lines from the beginning and end of each chunk 
+            (except that it doesn't trim the beginning of the first chunk and end of last chunk if we read whole file),
+            then joins the rest together to form a final byte buffer and returns a <see cref="T:Microsoft.ML.Runtime.PipelineInference.TextFileSample"/> 
+            wrapped around it.
+            </summary>
+            <param name="wholeFile">did we read whole file</param>
+            <param name="chunks">chunks of data</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.TextFileSample.IsEncodingOkForSampling(System.Byte[])">
+            <summary>
+            Detect whether we can auto-detect EOL characters without parsing. 
+            If we do, we can cheaply sample from different file locations and trim the partial strings.
+            The encodings that pass the test are UTF8 and all single-byte encodings.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.PipelineInference.TransformInference">
+            <summary>
+            Auto-generate set of transforms for the data view, given the purposes of specified columns.
+            
+            The design is the same as for <see cref="T:Microsoft.ML.Runtime.PipelineInference.ColumnTypeInference"/>: there's a sequence of 'experts' 
+            that each look at all the columns. Every expert may or may not suggest additional transforms.
+            If the expert needs some information about the column (for example, the column values), 
+            this information is lazily calculated by the column object, not the expert itself, to allow the reuse 
+            of the same information by another expert. 
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.PipelineInference.TransformInference.Arguments.EstimatedSampleFraction">
+            <summary>
+            Relative size of the inspected data view vs. the 'real' data size.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.PipelineInference.TransformInference.InferTransforms(Microsoft.ML.Runtime.IHostEnvironment,Microsoft.ML.Runtime.Data.IDataView,Microsoft.ML.Runtime.PipelineInference.PurposeInference.Column[],Microsoft.ML.Runtime.PipelineInference.TransformInference.Arguments)">
+            <summary>
+            Automatically infer transforms for the data view
+            </summary>
+        </member>
+    </members>
+</doc>

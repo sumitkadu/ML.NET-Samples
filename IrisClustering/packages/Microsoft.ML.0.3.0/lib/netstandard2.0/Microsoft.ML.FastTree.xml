@@ -1,0 +1,2474 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.ML.FastTree</name>
+    </assembly>
+    <members>
+        <member name="M:Microsoft.ML.Runtime.FastTree.BoostingFastTreeTrainerBase`2.BsrMaxTreeOutput">
+            <summary>
+            Retrieves max tree output if best regression step option is active or returns negative value otherwise.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.DatasetUtils">
+            <summary>
+            Loads training/validation/test sets from file
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DatasetUtils.CreateFeatureFromQueryId(Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton)">
+            <summary>
+            Attempts to create a feature from a ulong array. The intent
+            is that this will handle query ID.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.PerBinStats">
+            <summary>
+            Holds statistics per bin value for a feature. These are yielded by <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase.GetBinStats(System.Int32)"/>
+            to indicate after a <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase.Sumup(System.Int32,System.Boolean[],System.Int32,System.Double,System.Double,System.Double[],System.Double[],System.Int32[])"/> call over a subset of the dataset. These statistics
+            are then used in <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner"/> to find splitting on which bin will yield the
+            best least squares solution
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.PerBinStats.SumTargets">
+            <summary>Sum of all target values in a partition for the bin.</summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.PerBinStats.SumWeights">
+            <summary>Sum of all target weights in a partition. May be 0 if we are not doing weighted training.</summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.PerBinStats.Count">
+            <summary>Count of the documents in this partition for the bin.</summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase">
+            <summary>
+            These objects are stateful, reusable objects that enable the collection of sufficient
+            stats per feature flock, per node or leaf of a tree, to enable it to find the "best"
+            splits.
+            
+            Each instance of this corresponds to a single flock, but multiple of these will be created
+            per flock. Note that feature indices, whenever present, refer to the feature within the
+            particular flock the same as they do with <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase"/>.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase.IsSplittable">
+            <summary>
+            An array as large as there are count of features in the corresponding flock. Used by
+            <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner"/> to indicate whether a particular
+            feature has been judged to be potentially splittable or not.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase.Sumup(System.Int32,System.Boolean[],System.Int32,System.Double,System.Double,System.Double[],System.Double[],System.Int32[])">
+            <summary>
+            Performs the accumulation of sufficient statistics for active features within a flock.
+            </summary>
+            <param name="featureOffset">Offset into <paramref name="active"/> where we should start querying active stats</param>
+            <param name="active">The indicator array of whether features are active or not, logically starting for
+            this flock at <paramref name="featureOffset"/>, where after this </param>
+            <param name="numDocsInLeaf">Minimum documents total in this leaf</param>
+            <param name="sumTargets">The sum of the targets for this leaf</param>
+            <param name="sumWeights">The sum of the weights for this leaf</param>
+            <param name="outputs">The target values, indexed by <paramref name="numDocsInLeaf"/></param>
+            <param name="weights"></param>
+            <param name="docIndices">The first <paramref name="numDocsInLeaf"/> entries indicate the row indices
+            in this leaf, and these row indices are used to </param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase.SumupCore(System.Int32,System.Boolean[],System.Int32,System.Double,System.Double,System.Double[],System.Double[],System.Int32[])">
+            <summary>
+            The core implementation called from <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase.Sumup(System.Int32,System.Boolean[],System.Int32,System.Double,System.Double,System.Double[],System.Double[],System.Int32[])"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase.Subtract(Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase)">
+            <summary>
+            Subtracts one sufficient statistics from another. Note that this other
+            sufficient statistics object must be over the same feature flock in order
+            to be meaningful, as well as have undergone <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase.Sumup(System.Int32,System.Boolean[],System.Int32,System.Double,System.Double,System.Double[],System.Double[],System.Int32[])"/> under
+            the same set of active features.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase.SizeInBytes">
+            <summary>
+            An approximation of the size in bytes used by this structure. Used for tracking
+            and memory size estimation purposes.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase.CopyFeatureHistogram(System.Int32,Microsoft.ML.Runtime.FastTree.Internal.PerBinStats[]@)">
+            <summary>
+            Get a fullcopy of histogram for one sub feature. 
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase`1">
+            <summary>
+            Type specific implementation of sufficient stats.
+            </summary>
+            <typeparam name="TSuffStats">The type of sufficient stats that we will be able to do
+            "peer" operations against, like subtract. This will always be the derived class itself.</typeparam>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase`1.SubtractCore(`0)">
+            <summary>
+            Actual core implementation of subtraction. By the time this is called, the
+            base class has ensured that the feature flock of this is the same as the
+            feature flock in the other.
+            </summary>
+            <param name="other">The sufficient statistics we are subtracting</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase">
+            <summary>
+            A feature flock is a collection of features, grouped together because storing the
+            features and performing the key operations on them in a collection can be done
+            more efficiently than if they were stored as separate features.
+            
+            Since this is a collection of features, feature specific quantities and methods
+            will have a feature index parameter. Note that this index is always, for every
+            flock, from 0 up to but not including <see cref="F:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.Count"/>. Now,
+            in the larger context of a <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.Dataset"/> holding many flocks, the
+            individual features might have some sort of "dataset-wide" index, but this is
+            considered the business of the dataset, not the flocks themselves. See
+            <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.MapFeatureToFlockAndSubFeature(System.Int32,System.Int32@,System.Int32@)"/> to see some details of this
+            dataset-wide versus flock-wide feature index.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.Count">
+            <summary>
+            The number of features contained within this flock.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.Examples">
+            <summary>
+            The number of training examples represented by the features within this flock.
+            This should be the same for all flocks within a dataset.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.Categorical">
+            <summary>
+            Flock is a categorical feature.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.SizeInBytes">
+            <summary>
+            An approximation of the size in bytes used by this structure. Used for estimating
+            memory usage of the tree learner.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.CreateSufficientStats(System.Boolean)">
+            <summary>
+            A reusable structure for tracking the sufficient statistics for tree learning
+            of the features in this flock.
+            </summary>
+            <param name="hasWeights">Whether structures related to tracking
+            example weights should be allocated</param>
+            <returns>A sufficient statistics object</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.GetIndexer(System.Int32)">
+            <summary>
+            Returns a forward indexer for a single feature. This has a default implementation that
+            relies on <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.GetFlockIndexer"/>, but base classes may find it beneficial from
+            a performance perspective to provide their own implementation.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.GetFlockIndexer">
+            <summary>
+            Returns a forward indexer for all features within the flock.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.BinCount(System.Int32)">
+            <summary>
+            Given a feature index, return the number of distinct bins there are for that feature.
+            This will be the length of <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.BinUpperBounds(System.Int32)"/> for this feature. This is also
+            the upper exclusive limit on the binned value seen for this feature.
+            </summary>
+            <param name="featureIndex">The index of the feature within the flock</param>
+            <returns>The number of distinct bins for that feature within the flock</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.Trust(System.Int32)">
+            <summary>
+            The multiplier on the gain for any particular feature. This can be used to make
+            features appear more or less attractive. The default value should be considered
+            to be 1.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.BinUpperBounds(System.Int32)">
+            <summary>
+            An array of increasing values, forming the boundaries of all the binned values.
+            </summary>
+            <param name="featureIndex"></param>
+            <returns>The bin upper bounds for a feature. This array will have the same
+            length as <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.BinCount(System.Int32)"/>.</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.GenericIntArrayForwardIndexer">
+            <summary>
+            If you need to implement <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.GetIndexer(System.Int32)"/> you can use 
+            <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.GenericIntArrayForwardIndexer"/>. This will be slower than a
+            specialized implementation but is at least a useful shim.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.FlockForwardIndexerBase">
+            <summary>
+            Interface for objects that can index into a flock, but only with a nondecreasing sequence of row
+            indices from access to access. It is fine for feature indices to appear in any order.
+            A feature group analogy to <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.IIntArrayForwardIndexer"/> but for feature flocks instead of
+            <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.IntArray"/> instances.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.FlockForwardIndexerBase.Flock">
+            <summary>
+            The flock over which this feature flock was built.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase.FlockForwardIndexerBase.Item(System.Int32,System.Int32)">
+            <summary>
+            Gets the element at the given position.
+            </summary>
+            <param name="featureIndex">The index of the feature within the flock</param>
+            <param name="rowIndex">Index of the row to get, should be non-decreasing from any previous
+            access on this indexer</param>
+            <returns>The value at the index</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.SinglePartitionedIntArrayFlockBase`1">
+            <summary>
+            A base class for a feature flock that wraps a single <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.IntArray"/> that contains multiple
+            feature values using a concatentation of the non-zero ranges of each feature, and also in some way
+            that doing a <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.IntArray.Sumup(Microsoft.ML.Runtime.FastTree.Internal.SumupInputData,Microsoft.ML.Runtime.FastTree.Internal.FeatureHistogram)"/> will accumulate sufficient statistics correctly for all
+            except the first (zero) bin.
+            </summary>
+            <typeparam name="TIntArray">The type of <see>IntArray</see> this implementation wraps</typeparam>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.SinglePartitionedIntArrayFlockBase`1.#ctor(`0,System.Int32[],System.Double[][],System.Boolean)">
+            <summary>
+            Constructor for the <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.SinglePartitionedIntArrayFlockBase`1"/>.
+            </summary>
+            <param name="bins">The binned version of the features, stored collectively in one
+            <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.IntArray"/>, where 0 indicates that all features are in the "cold" bin
+            of 0, and a non-zero value indicates one of the features is "hot," where which
+            feature is hot and what value it has is indicated by <paramref name="hotFeatureStarts"/>.
+            The zero value is "shared" among all features, effectively, and the non-zero values
+            are the result of a shifted concatenation of the range of the non-zero values, for
+            each feature incorporated in the flock. See the example for more concrete information.
+            </param>
+            <param name="hotFeatureStarts">The ranges of values of <paramref name="bins"/>
+            where features start and stop. This is a non-decreasing array of integers. For
+            feature <c>f</c>, the elements at <c>f</c> and <c>f+1</c> indicate the minimum
+            and limit of values in <paramref name="bins"/> that indicate that the corresponding
+            feature is "hot" starting at a value of 1.</param>
+            <param name="binUpperBounds">The bin upper bounds structure</param>
+            <param name="categorical"></param>
+            <example>
+            Imagine we have a six row dataset, with two features, which if stored separately in,
+            say, a <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.SingletonFeatureFlock"/>, would have bin values as follows.
+            
+            <c>f0 = { 0, 1, 0, 0, 2, 0}</c>
+            <c>f1 = { 0, 0, 1, 0, 0, 1}</c>
+            
+            These two are a candidate for a <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.OneHotFeatureFlock"/>, because they never both
+            have a non-zero bin value for any row. Then, in order to represent this in this feature,
+            we would pass in this value for the <paramref name="bins"/>:
+            <c><paramref name="bins"/> = { 0, 1, 3, 0, 2, 3 }</c>
+            and this value for <paramref name="hotFeatureStarts"/>:
+            <c><paramref name="hotFeatureStarts"/> = { 1, 3, 4 }</c>
+            Note that the range of <paramref name="bins"/> is, aside from the zero, the concatenation
+            of the non-zero range of all constituent input features, and where the reconstruction of
+            what feature is which can be reconstructed from <paramref name="hotFeatureStarts"/>, which
+            for each feature specifies the range in <paramref name="bins"/> corresponding to the
+            "logical" bin value for that feature starting from 1.
+            
+            Note that it would also have been legal for <paramref name="hotFeatureStarts"/> to be
+            larger than the actual observed range, e.g., it could have been:
+            <c><paramref name="hotFeatureStarts"/> = { 1, 5, 8}</c>
+            or something. This could happen if binning happened over a different dataset from the data
+            being represented right now, for example, but this is a more complex case.
+            
+            The <paramref name="binUpperBounds"/> would contain the upper bounds for both of these features,
+            which would be arrays large enough so that the maximum value of the logical bin for each feature
+            in the flock could index it. (So in this example, the first bin upper bound would be at least
+            length 3, and the second at least length 2.)
+            
+            The <paramref name="categorical"/> indicates if the flock is a categorical feature.
+            </example>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.SinglePartitionedIntArrayFlockBase`1.SufficientStats">
+            <summary>
+            Stores the sufficient statistics for all features within this flock using a single
+            histogram, where the range of what accumulated sufficient statistics are relevant
+            to what feature can be inferred by <see cref="F:Microsoft.ML.Runtime.FastTree.Internal.SinglePartitionedIntArrayFlockBase`1.HotFeatureStarts"/>.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.SinglePartitionedIntArrayFlockBase`1.SufficientStats.Hist">
+            <summary>
+            Stores the sufficient statistics for all features within this flock using a single
+            histogram, where the range of what accumulated sufficient statistics correspond to
+            what actual logical feature depends on <see cref="F:Microsoft.ML.Runtime.FastTree.Internal.SinglePartitionedIntArrayFlockBase`1.HotFeatureStarts"/>.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.NHotFeatureFlock">
+            <summary>
+            This is a feature flock that misuses a property of <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.DeltaSparseIntArray.Sumup(Microsoft.ML.Runtime.FastTree.Internal.SumupInputData,Microsoft.ML.Runtime.FastTree.Internal.FeatureHistogram)"/>
+            that it works just fine with zero deltas, to "overload" rows into having their targets, thus
+            allowing a single sumup to accumulate multiple "features" on a single row.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.OneHotFeatureFlock">
+            <summary>
+            A feature flock for a set of features where per example at most one of the features has a
+            non-zero bin.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.OneHotFeatureFlock.Indexer.#ctor(Microsoft.ML.Runtime.FastTree.Internal.IIntArrayForwardIndexer,System.Int32,System.Int32)">
+            <summary>
+            Instantiates an indexer that translates from the "concatenated" bin space across all features,
+            into the original logical space for each individual feature.
+            </summary>
+            <param name="indexer">The indexer into the "shared" <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.IntArray"/>, that we
+            are translating into the original logical space for this feature, where values in the
+            range of [<paramref name="min"/>,<paramref name="lim"/>) will map from 1 onwards, and all
+            other values will map to 0</param>
+            <param name="min">The minimum value from the indexer that will map to 1</param>
+            <param name="lim">The exclusive upper bound on values from the indexer</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.SingletonFeatureFlock">
+            <summary>
+            The singleton feature flock is the simplest possible sort of flock, that is, a flock
+            over one feature.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Algorithms.FindFirstGE``1(``0[],``0)">
+            <summary>
+            Returns the index of the first array position that is larger than or equal to val
+            </summary>
+            <typeparam name="T">an IComparable type</typeparam>
+            <param name="array">a sorted array of values</param>
+            <param name="val">the value to search for</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Algorithms.FindLastLE``1(``0[],``0)">
+            <summary>
+            Returns the index of the last array position that is less than or equal to val
+            </summary>
+            <typeparam name="T">an IComparable type</typeparam>
+            <param name="array">a sorted array of values</param>
+            <param name="val">the value to search for</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Algorithms.TopK``1(``0[],System.Int32,System.Int32,``0[],System.Int32[])">
+            <summary>
+            Finds the largest k entries in an array (with offset and length)
+            </summary>
+            <typeparam name="T">An IComparible type</typeparam>
+            <param name="array">The array being searched</param>
+            <param name="offset">An offset into the array</param>
+            <param name="length">The length of the search</param>
+            <param name="topK">The values of the top K</param>
+            <param name="topKPositions">The positions of the top K</param>
+            <returns>The number of entries set in topK and topKPositions (length could be less than K)</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Algorithms.Min``1(``0[],System.Int32@)">
+            <summary>
+            Fidns the minimum and the argmin in an array of values
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Algorithms.MergeSortedUniqued``1(``0[][])">
+            <summary>
+            Takes an arbitrary array of sorted uniqued IComparables and returns a sorted uniqued merge
+            </summary>
+            <typeparam name="T">An IComparable </typeparam>
+            <param name="arrays">An array of sorted uniqued arrays</param>
+            <returns>A sorted and uniqued merge</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.BlockingThreadPool">
+            <summary>
+            This class wraps the standard .NET ThreadPool and adds the following functionality:
+            1) the user explicitly defines a maximum of concurrently running threads
+            2) if the maximum is k, and k work items are already running, a call to RunOrBlock will block until a
+               thread is available
+            3) a work item can be any function with 6 or less arguments
+            4) a work item knows the index of the thread it is running on - this can be used if the threads share \
+               common resources
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.BlockingThreadPool.Initialize(System.Int32)">
+            <summary>
+            constructor
+            </summary>
+            <param name="numThreads">the maximal number of concurrent threads</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.BufferPoolManager">
+            <summary>
+            This class enables basic buffer pooling.
+            It supports different types of buffers and returns buffers of the requested size or larger.
+            This class was implemented to reduce frequent allocation/deallocation of large buffers which caused fragmentation of the large object heap.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.BufferPoolManager.MinBufferSizeInBytes">
+            <summary>
+            The minimum size in bytes for a buffer to be stored in the pool
+            This is the minimum size in bytes for an object to be stored in the large object heap
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.BufferPoolManager._bufferPools">
+            <summary>
+            A dictionary containing all buffer pool types
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.BufferPoolManager.TakeBuffer``1(System.Int32)">
+            <summary>
+            Gets a buffer from the pool with at least the same size as passed as input parameter
+            </summary>
+            <typeparam name="T">Pool type</typeparam>
+            <param name="size">Minimum size required</param>
+            <returns>The buffer requested</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.BufferPoolManager.ReturnBuffer``1(``0[]@)">
+            <summary>
+            Returns a buffer back to the pool.
+            It only keeps buffers bigger than MaxBufferSizeInBytes = 85K bytes
+            </summary>
+            <param name="buffer">The buffer array to add to the pool of buffers</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.BufferPoolManager.ReleaseAllAvailableBuffers(System.Type)">
+            <summary>
+            Releases all available buffers in a specific pool
+            </summary>
+            <param name="type">Buffer pool type</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.BufferPoolManager.ReleaseAllAvailableBuffers">
+            <summary>
+            Releases all available buffers in all pools
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.BufferPoolManager.InitializeBufferPool``1">
+            <summary>
+            Initializes a new buffer pool of a specific type
+            </summary>
+            <typeparam name="T">Type of buffer to initialize</typeparam>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.BufferPoolManager.InitializeBufferPool(System.Type)">
+            <summary>
+            Initializes a new buffer pool of a specific type
+            </summary>
+            <param name="type">Type of buffer to initialize</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LinqExtensions.CumulativeSum``1(System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            RunningLength. Converts sequence like 1, 2, 3, 4
+            to  1, 3, 6, 10
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.MappedObjectPool`1">
+            <summary>
+            Implements a paging mechanism on indexed objects.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.MappedObjectPool`1.#ctor(`0[],System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.MappedObjectPool`1"/> class.
+            </summary>
+            <param name="pool">A pool of objects on top of which the paging mechanism is built</param>
+            <param name="maxIndex">The maximal index</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.MappedObjectPool`1.Get(System.Int32,`0@)">
+            <summary>
+            If the given index maps to a cached object, that object is retrieved and the return value is true.
+            If the index is not cached, an object from the pool is retrieved (possibly paging-out the least-recently used) and the return value is false.
+            </summary>
+            <param name="index">The requested index</param>
+            <param name="obj">The retrieved object</param>
+            <returns>true if the index was found, false if a new object was assigned from the pool</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.MappedObjectPool`1.Reset">
+            <summary>
+            Resets the MappedObjectPool
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.PseudorandomFunction">
+            <summary>
+            This class defines a psuedorandom function, mapping a number to
+            a hard to predict but deterministic other number, through some
+            nefarious means.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.StreamExtensions.UndisposableStream">
+            <summary>
+            A stream class that suppresses the dispose signal
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.StreamExtensions.ReadCompressed(System.IO.Stream)">
+            <summary>
+            Reads a compressed array of byte from the stream (written by WriteCompressed)
+            </summary>
+            <param name="stream">The stream to read from</param>
+            <returns>The decompressed bytes</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.StreamExtensions.WriteCompressed(System.IO.Stream,System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Writes an array of bytes to the stream with compression
+            </summary>
+            <param name="stream">Stream to write to</param>
+            <param name="array">Array to write</param>
+            <param name="offset">The byte offset into the array to write</param>
+            <param name="count">The number of bytes from the array to write</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.StreamExtensions.WriteCompressed(System.IO.Stream,System.Byte[])">
+            <summary>
+            Writes an array of bytes to the stream with compression
+            </summary>
+            <param name="stream">Stream to write to</param>
+            <param name="array">Array to write</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.ThreadTaskManager.MakeTask(System.Collections.Generic.IEnumerable{System.Action})">
+            <summary>
+            Makes a new task using the subtasks
+            </summary>
+            <param name="subTasks">subtasks composing the task</param>
+            <returns>An IThreadTask to run the tasks</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.ThreadTaskManager.MakeTask(System.Action{System.Int32},System.Int32)">
+            <summary>
+            Makes a new task from the supplied action that takes an integer argument, from 0...max
+            </summary>
+            <param name="subTaskAction">Action to run</param>
+            <param name="maxArgument">The max range of the argument</param>
+            <returns>A task that runs the action using each value of the argument from 0...max</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.IThreadTask">
+            <summary>
+            Interface for a decomposable task that runs on many threads
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.Timer">
+            <summary>
+            Static class for timing events.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Timer.TimerState.ToString">
+            <summary>
+            Gets a string summary of the total times.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Timer.GetTicks(Microsoft.ML.Runtime.FastTree.Internal.TimerEvent)">
+            <summary>
+            Returns the total number of CPU ticks spent in the specified timer so far.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Timer.Time(Microsoft.ML.Runtime.FastTree.Internal.TimerEvent)">
+            <summary>
+            Creates a timed event which, when disposed, adds to the total time of that event type.
+            </summary>
+            <param name="e">The type of event</param>
+            <returns>A timed event</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.Timer.TimedEvent">
+            <summary>
+            An object which, when disposed, adds to the total time of that event type.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Timer.GetString">
+            <summary>
+            Gets a string summary of the total times.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.ToByteArrayExtensions">
+            <summary>
+            This class contains extension methods that support binary serialization of some base C# types
+            and arrays of these types.
+            SizeInBytes - the number of bytes in the binary representation
+            type.ToByteArray(buffer, ref position) - will write the binary representation of the type to
+              the byte buffer at the given position, and will increment the position to the end of
+              the representation
+            byte[].ToXXX(ref position) - converts the binary representation back into the original type
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Ensemble.PopulateRawThresholds(Microsoft.ML.Runtime.FastTree.Internal.Dataset)">
+            <summary>
+            Converts the bin based thresholds to the raw real-valued thresholds.
+            To be called after training the ensemble.
+            </summary>
+            <param name="dataset">The dataset from which to get the bin upper bounds per feature</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Ensemble.RemapFeatures(System.Int32[])">
+            <summary>
+            Remaps the features, to a new feature space. Is called in the event that the features
+            in the training <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.Dataset"/> structure are different from the ones in the
+            original pipeline (possibly due to trivialization of input features), and so need to
+            be remapped back to the original space. Note that the tree once modified in this way
+            will no longer have features pointing to the original training <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.Dataset"/>,
+            so this should be called only after <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.Ensemble.PopulateRawThresholds(Microsoft.ML.Runtime.FastTree.Internal.Dataset)"/> is called.
+            </summary>
+            <param name="oldToNewFeatures">The mapping from old original features, into the new features</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Ensemble.ToTreeEnsembleIni(Microsoft.ML.Runtime.FastTree.Internal.FeaturesToContentMap,System.String,System.Boolean,System.Boolean)">
+            <summary>
+            returns the ensemble in the production TreeEnsemble format
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Ensemble.GetFeatureContributions(Microsoft.ML.Runtime.Data.VBuffer{System.Single}@,Microsoft.ML.Runtime.Data.VBuffer{System.Single}@,Microsoft.ML.Runtime.Data.BufferBuilder{System.Single}@)">
+            <summary>
+            Returns a vector of feature contributions for a given example.
+            <paramref name="builder"/> is used as a buffer to accumulate the contributions across trees. 
+            If <paramref name="builder"/> is null, it will be created, otherwise it will be reused.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.FeaturesToContentMap">
+            <summary>
+            A class that given either a <see cref="T:Microsoft.ML.Runtime.Data.RoleMappedSchema"/>
+            provides a mechanism for getting the corresponding input INI content for the features.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.FeaturesToContentMap.#ctor(Microsoft.ML.Runtime.Data.RoleMappedSchema)">
+            <summary>
+            Maps input features names to their input INI content based on the metadata of the
+            features column. If the <c>IniContent</c> slotwise string metadata is present, that
+            is used, or else default content is derived from the slot names.
+            </summary>
+            <seealso cref="F:Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.SlotNames"/>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.QuantileRegressionTree.LoadSampledLabels(Microsoft.ML.Runtime.Data.VBuffer{System.Single}@,System.Single[],System.Single[],System.Int32,System.Int32)">
+            <summary>
+            Loads the sampled labels of this tree to the distribution array for the sparse instance type. 
+            By calling for all the trees, the distribution array will have all the samples from all the trees
+            </summary>        
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.CategoricalSplit">
+            <summary>
+            Indicates if a node's split feature was categorical.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.CategoricalSplitFeatures">
+            <summary>
+            Array of categorical values for the categorical feature that might be chosen as 
+            a split feature for a node.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.CategoricalSplitFeatureRanges">
+            <summary>
+            For a given categorical feature that is chosen as a split feature for a node, this 
+            array contains it's start and end range in the input feature vector at prediction time.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.TreeType">
+            <summary>
+            Code to identify the type of tree in binary serialization. These values are
+            persisted, so they should remain consistent for the sake of deserialization
+            backwards compatibility.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.#ctor(System.Int32)">
+            <summary>
+            constructs a regression tree with an upper bound on depth
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.Create(System.Int32,System.Int32[],System.Double[],System.Single[],System.Single[],System.Int32[],System.Int32[],System.Double[],System.Int32[][],System.Boolean[])">
+            <summary>
+            Create a Regression Tree object from raw tree contents.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.NumLeaves">
+            <summary>
+            The current number of leaves in the tree.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.NumNodes">
+            <summary>
+            The current number of nodes in the tree.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.MaxNumLeaves">
+            <summary>
+            The maximum number of leaves the internal structure of this tree can support.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.MaxNumNodes">
+            <summary>
+            The maximum number of nodes this tree can support.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.ScaleOutputsBy(System.Double)">
+            <summary>
+            Scales all of the output values at the leaves of the tree by a given scalar
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.GetOutput(Microsoft.ML.Runtime.FastTree.Internal.Dataset.RowForwardIndexer.Row)">
+            <summary>
+            Evaluates the regression tree on a given document.
+            </summary>
+            <param name="featureBins"></param>
+            <returns>the real-valued regression tree output</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.GetOutput(System.Int32[])">
+            <summary>
+            evaluates the regression tree on a given binnedinstance.
+            </summary>
+            <param name="binnedInstance">A previously binned instance/document</param>
+            <returns>the real-valued regression tree output</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.GetLeafFrom(Microsoft.ML.Runtime.Data.VBuffer{System.Single}@,System.Int32)">
+            <summary>
+            Returns leaf index the instance falls into, if we start the search from the <paramref name="root"/> node.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.GetLeaf(Microsoft.ML.Runtime.Data.VBuffer{System.Single}@,System.Collections.Generic.List{System.Int32}@)">
+            <summary>
+            Returns the leaf node for the given feature vector, and populates 'path' with the list of internal nodes in the
+            path from the root to that leaf. If 'path' is null a new list is initialized. All elements in 'path' are cleared
+            before filling in the current path nodes.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.GetOutputs(Microsoft.ML.Runtime.FastTree.Internal.Dataset)">
+            <summary>
+            returns the hypothesis output for an entire dataset
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.Split(System.Int32,System.Int32,System.Int32[],System.Int32[],System.Boolean,System.UInt32,System.Double,System.Double,System.Double,System.Double)">
+            <summary>
+            Turns a leaf of the tree into an interior node with two leaf-children.
+            </summary>
+            <param name="leaf">The index of the leaf to split.</param>
+            <param name="feature">The index of the feature used to split this leaf (as
+            it indexes the array of DerivedFeature instances passed to the to tree ensemble format).</param>
+            <param name="categoricalSplitFeatures">Thresholds for categorical split.</param>
+            <param name="categoricalSplitRange"></param>
+            <param name="categoricalSplit"></param>
+            <param name="threshold">The </param>
+            <param name="lteValue">The value of the leaf on the LTE side.</param>
+            <param name="gtValue">The value of the leaf on the GT side.</param>
+            <param name="gain">The splitgain of this split. This does not
+            affect the logic of the tree evaluation.</param>
+            <param name="gainPValue">The p-value associated with this split,
+            indicating confidence that this is a better than random split.
+            This does not affect the logic of the tree evaluation.</param>
+            <returns>Returns the node index</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.ToTreeEnsembleFormat(System.Text.StringBuilder,System.Text.StringBuilder,Microsoft.ML.Runtime.FastTree.Internal.FeaturesToContentMap,System.Int32@,System.Collections.Generic.Dictionary{System.Int32,System.Int32})">
+            <summary>
+            Returns a representation of the tree in the production
+            decision tree format (SHAREDDYNAMICRANKROOT\TreeEnsembleRanker\Tree.h).
+            The intent is that this
+            </summary>
+            <param name="sbEvaluator">Append the new evaluator to this stringbuilder.</param>
+            <param name="sbInput">Append any hitherto unused [Input:#] sections
+            to this stringbuilder.</param>
+            <param name="featureContents">The feature to content map.</param>
+            <param name="evaluatorCounter">A running count of evaluators. When
+            this method returns it should have one more entry.</param>
+            <param name="featureToId">A map of feature index (in the features array)
+            to the ID as it will be written in the file. This instance should be
+            used for all </param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.OptimizePathToLeaf(System.Int32)">
+            <summary>
+            Sets the path to a leaf to be indexed by 0,1,2,3,... and sets the leaf index to 0
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.RegressionTree.SwapNodePositions(System.Int32,System.Int32)">
+            <summary>
+             swaps the positions of two nodes in the tree, without any functional change to the tree
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.TrivialGradientWrapper">
+            <summary>
+            Trivial weights wrapper. Creates proxy class holding the targets.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.BestStepRegressionGradientWrapper">
+            <summary>
+            Provides weights used when best regression step option is on.
+            </summary>
+            Second-derivatives used as weights in a leaf when one makes Newton-Raphson step (taken in account when regression tree is trained).
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.QueryWeightsGradientWrapper">
+            <summary>
+            Wraps targets with query weights. Regression tree is built for weighted data, and weights are used for mean
+            calculation at Newton-Raphson step.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.QueryWeightsBestResressionStepGradientWrapper">
+            <summary>
+            Wraps targets whan both query weights and best step regression options are active.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.DcgCalculator._secondLevelcomparers">
+            <summary>
+            Contains the instances for a second Level comparer, which gets applied after the initial rank
+            based ordering has happened. The array stores one second level comparer per thread.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DcgCalculator.#ctor(System.Int32,System.String,System.Int32)">
+            <summary>
+            Constructs a DCG calculator
+            </summary>
+            <param name="maxDocsPerQuery">the maximum number of documents per query</param>
+            <param name="sortingAlgorithm">a string describing the sorting algorithm to use</param>
+            <param name="topNDocsForIdealDcg">specifies the ideal DCG@ computation.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DcgCalculator.MaxDcg(System.Int16[],System.Int32[],System.Int32,System.Int32[][])">
+            <summary>
+            Calculates the natural-based max DCG at a given truncation
+            </summary>
+            <param name="labels">vector of labels</param>
+            <param name="boundaries">vector of query boundaries</param>
+            <param name="trunc">truncation to use</param>
+            <param name="labelCounts"></param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DcgCalculator.MaxDcgQuery(System.Int16[],System.Int32,System.Int32,System.Int32,System.Int32[])">
+            <summary>
+            Calculates the natural-based max DCG at a given truncation for a query
+            </summary>
+            <param name="labels">vector of labels</param>
+            <param name="begin">Index of the first document</param>
+            <param name="labelCounts"></param>
+            <param name="trunc">truncation to use</param>
+            <param name="numDocuments"></param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DcgCalculator.Ndcg3(Microsoft.ML.Runtime.FastTree.Internal.Dataset,System.Int16[],System.Double[])">
+            <summary>
+            Efficient computation of average NDCG@3 for the entire dataset
+            Note that it is virtual and MPI provides faster implementations for MPI
+            </summary>
+            <param name="dataset">the dataset</param>
+            <param name="scores">vector of scores</param>
+            <param name="labels"></param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DcgCalculator.DCG3(System.Double[],System.Int16[],System.Int32,System.Int32)">
+            <summary>
+            Efficient computation of natural-based pessimistic DCG@3 for a given query
+            </summary>
+            <param name="scores">vector of scores</param>
+            <param name="labels">vector of labels</param>
+            <param name="begin">index of first document in query</param>
+            <param name="end">index of first document in next query</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DcgCalculator.Ndcg1(Microsoft.ML.Runtime.FastTree.Internal.Dataset,System.Int16[],System.Double[])">
+            <summary>
+            Efficient computation of average NDCG@1 for the entire dataset
+            Note that it is virtual and MPI provides faster implemetations for MPI
+            </summary>
+            <param name="dataset">the dataset</param>
+            <param name="labels"></param>
+            <param name="scores">the vector of score from previous rounds</param>
+            <returns>average NDCG@1 for an entire dataset</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DcgCalculator.DCG1(System.Double[],System.Int16[],System.Int32,System.Int32)">
+            <summary>
+            Calculates the natural-based pessimistic DCG@1 of scores(query)
+            </summary>
+            <param name="scores">vector of scores</param>
+            <param name="labels">vector of labels</param>
+            <param name="begin">index of first document in query</param>
+            <param name="end">index of first document in next query</param>
+            <returns>DCG@1</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DcgCalculator.NdcgRangeFromScores(Microsoft.ML.Runtime.FastTree.Internal.Dataset,System.Int16[],System.Double[])">
+            <summary>
+            calculates the average NDCG given the scores array
+            For performance reason it duplicates some
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DcgCalculator.SortRankingResults(System.Int16[],System.Int32,System.Int32,System.Int32,System.Int32,System.Int32[],System.Double[])">
+            <summary>
+            Orders the queries based on the given comparer.
+            </summary>
+            <param name="labels">The label for all query URL pairs</param>
+            <param name="threadIndex">Specifies the thread which is executing this code</param>
+            <param name="scoreBegin">position of the first query-URL pair to sort in the score array</param>
+            <param name="labelBegin">position of the first query-URL pair to sort in the label array</param>
+            <param name="count">number of query-URL pairs</param>
+            <param name="permutation">resulting query order array</param>
+            <param name="scores">The scores for all query URL pairs</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DcgCalculator.OrderingFromScores(Microsoft.ML.Runtime.FastTree.Internal.Dataset,System.Double[])">
+            <summary>
+            Calculates the order of documents. This returns an array with as many elements
+            as there are documents, where the subarray in a query's boundary will contain
+            elements from 0 up to but not including the number of documents in the query.
+            The first value in this subarray will contain the index of the document in the
+            subarray at top position (highest ranked), and the last value the index of the
+            document with bottom position (lowest ranked).
+            </summary>
+            <param name="dataset">The dataset over which to calculate the DCG.</param>
+            <param name="scores">The scores for all documents within the dataset.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.DescendingStablePessimisticPermutationComparer">
+            <summary>
+            Compares two integers that are indices into a vector of doubles.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.DescendingStablePermutationComparer">
+            <summary>
+            Compares two integers that are indices into a vector of doubles.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.DescendingStableIdealComparer">
+            <summary>
+            Implements an HRS based comparer to sort the ranking results for the first N results.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DescendingStableIdealComparer.#ctor(System.Int32)">
+            <summary>
+            Creates an instance of the DescendingStableIdealComparer for the TOP N query/URL pairs
+            </summary>
+            <param name="comparefirstN">Specifies the TOP N query/URL pairs which should be used for  sorting</param>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.DescendingStableIdealComparer.CompareFirstN">
+            <summary>
+            Specifies the TOP N query/URL pairs which should be used for  sorting
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.DescendingStableIdealComparer.Labels">
+            <summary>
+            The HRS labels for all query/URL pairs
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.DescendingStableIdealComparer.LabelsOffset">
+            <summary>
+            The position inside the Labels where the this query starts for which the URLs should be reshuffled.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DescendingStableIdealComparer.System#Collections#Generic#IComparer{System#Int32}#Compare(System.Int32,System.Int32)">
+            <summary>
+            Compare two HRS ratings for query/URL pairs
+            </summary>
+            <param name="x">position for query/URL pair 1</param>
+            <param name="y">position for query/URL pair 2</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="numDocuments">number of document</param>
+            <param name="maxLeaves">number of leaves</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning.#ctor(Microsoft.ML.Runtime.FastTree.Internal.RegressionTree,Microsoft.ML.Runtime.FastTree.Internal.Dataset)">
+            <summary>
+            Constructs partitioning object based on the documents and RegressionTree splits
+            NOTE: It has been optimized for speed and multiprocs with 10x gain on naive LINQ implementation
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning.NumDocs">
+            <summary>
+            Returns the total number of documents handled by the partitioning
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning.Initialize">
+            <summary>
+            Resets the data structure, as if it was newly created
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning.GetDistribution(System.Double[],System.Double[],System.Int32,System.Random,System.Int32,System.Double[]@)">
+            <summary>
+            Does sampling with replacement on each leaf node and returns leaf count times of sample labels.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning.Split(System.Int32,Microsoft.ML.Runtime.FastTree.Internal.IIntArrayForwardIndexer,System.UInt32,System.Int32)">
+            <summary>
+            Splits the documents of a specified leaf to its two children based on a feature and a threshold value
+            </summary>
+            <param name="leaf">the leaf being split</param>
+            <param name="indexer"></param>
+            <param name="threshold">the threshold</param>
+            <param name="gtChildIndex">Index of child node that contains documents whose split 
+            feature value is greater than the split threshold</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning.Split(System.Int32,Microsoft.ML.Runtime.FastTree.Internal.IntArray,System.Collections.Generic.HashSet{System.Int32},System.Int32)">
+            <summary>
+            Splits the documents of a specified leaf to its two children based on a feature and a threshold value
+            </summary>
+            <param name="leaf">the leaf being split</param>
+            <param name="bins">Split feature flock's bin</param>
+            <param name="categoricalIndices">Catgeorical feature indices</param>
+            <param name="gtChildIndex">Index of child node that contains documents whose split 
+            feature value is greater than the split threshold</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning.GetLeafDocumentPartitions(System.Int32,Microsoft.ML.Runtime.FastTree.Internal.IIntArrayForwardIndexer,System.UInt32,System.Int32[]@,System.Int32@,System.Int32[]@,System.Int32@)">
+            <summary>
+            Get the document partitions of a specified leaf if it is split based on a feature and a threshold value.
+            </summary>
+            <param name="leaf">the leaf being split</param>
+            <param name="indexer">the indexer to access the feature value</param>
+            <param name="threshold">the threshold</param>
+            <param name="leftDocuments">[out] the left documents split from the leaf</param>
+            <param name="leftDocumentSize">[out] the size of left documents</param>
+            <param name="rightDocuments">[out] the right documents split from the leaf</param>
+            <param name="rightDocumentSize">[out] the size of right documents</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning.DocumentsInLeaf(System.Int32)">
+            <summary>
+            Returns an enumeration of the document indices associated with a specified leaf, in ascending order
+            </summary>
+            <param name="leaf">the leaf index</param>
+            <returns>the enumeration</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning.NumDocsInLeaf(System.Int32)">
+            <summary>
+            How many documents are associated with a specified leaf
+            </summary>
+            <param name="leaf">the leaf</param>
+            <returns>the number of documents</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning.Mean(System.Double[],System.Int32,System.Boolean)">
+            <summary>
+            Calculates the mean of a double array only on the elements that correspond to a specified leaf in the tree
+            </summary>
+            <param name="array">the double array</param>
+            <param name="leaf">the leaf index</param>
+            <param name="filterZeros"></param>
+            <returns>the mean</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning.Mean(System.Double[],System.Double[],System.Int32,System.Boolean)">
+            <summary>
+            Calculates the weighted mean of a double array only on the elements that correspond to a specified leaf in the tree
+            </summary>
+            <param name="array">the double array</param>
+            <param name="sampleWeights">Weights of array elements</param>
+            <param name="leaf">the leaf index</param>
+            <param name="filterZeros"></param>
+            <returns>the mean</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.LassoBasedEnsembleCompressor">
+            <summary>
+            This implementation is based on:
+            Friedman, J., Hastie, T. and Tibshirani, R. (2008) Regularization
+            Paths for Generalized Linear Models via Coordinate Descent.
+            http://www-stat.stanford.edu/~hastie/Papers/glmnet.pdf
+            </summary>
+            <remarks>Author was Yasser Ganjisaffar during his internship.</remarks>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.GradientDescent._numberOfDroppedTrees">
+            number of trees dropped in this iteration
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.IGradientAdjuster">
+            <summary>
+            Interface for wrapping with weights of gradient target values
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.IGradientAdjuster.AdjustTargetAndSetWeights(System.Double[],Microsoft.ML.Runtime.FastTree.Internal.ObjectiveFunctionBase,System.Double[]@)">
+            <summary>
+            Create wrapping of gradient target values
+            </summary>
+            <param name="gradient"></param>
+            <param name="objFunction">Objective functions can be used for constructing weights</param>
+            <param name="targetWeights"></param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.RandomForestOptimizer">
+            <summary>
+            This is dummy optimizer. As Random forest does not have any boosting based optimization, this is place holder to be consistent
+            with other fast tree based applications
+            </summary>    
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.TestResult.RawValue">
+            <summary>
+            Raw value used for calculating final test result value.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.TestResult.Factor">
+            <summary>
+            The factor used for calculating final test result value.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.TestResult.Operator">
+            <summary>
+            The operator used for calculating final test result value.
+            Final value = Operator(RawValue, Factor)
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.TestResult.LowerIsBetter">
+            <summary>
+            Indicates that the lower value of this metric is better
+            This is used for early stopping (with TestHistory and TestWindowWithTolerance)
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.RegressionTest.#ctor(Microsoft.ML.Runtime.FastTree.Internal.ScoreTracker,System.Nullable{System.Int32})">
+            <param name="scoreTracker"></param>
+             <param name="resultType">1: L1, 2: L2. Otherwise, return all.</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner">
+            <summary>
+            Trains regression trees.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.#ctor(Microsoft.ML.Runtime.FastTree.Internal.Dataset,System.Int32,System.Int32,System.Double,System.Double,System.Double,System.Double,System.Int32,System.Int32,System.Double,System.Boolean,System.Boolean,System.Double,System.Int32,System.Int32,System.Double,Microsoft.ML.Runtime.FastTree.IParallelTraining,System.Double,Microsoft.ML.Runtime.FastTree.Bundle,System.Int32,System.Double)">
+            <summary>
+            Creates a new LeastSquaresRegressionTreeLearner
+            </summary>
+            <param name="trainData">Data to train from</param>
+            <param name="numLeaves">Maximum leaves in tree</param>
+            <param name="minDocsInLeaf">Minimum allowable documents in leaf</param>
+            <param name="entropyCoefficient">Add the information gain of a split to the gain
+            times this value. Practically, this will favor more balanced splits</param>
+            <param name="featureFirstUsePenalty">Features never used before effectively
+            have this amount subtracted from their gain</param>
+            <param name="featureReusePenalty">Features used before effectively have
+            this amount subtracted from their gain</param>
+            <param name="softmaxTemperature">Regularization parameter, where we become
+            increasingly likely to select a non-optimal split feature the higher the
+            temperature is</param>
+            <param name="histogramPoolSize">Number of feature histograms to cache</param>
+            <param name="randomSeed">The seed to use for sampling</param>
+            <param name="splitFraction"></param>
+            <param name="filterZeros">Whether we should ignore zero lambdas for the
+            purpose of tree learning (generally a bad idea except for when zero indicates
+            that the document should be ignored)</param>
+            <param name="allowEmptyTrees">If false, failure to split the root will result in error, or if
+            true will result in null being returned when we try to fit a tree</param>
+            <param name="gainConfidenceLevel">Only consider a gain if its likelihood versus a random
+            choice gain is above a certain value (so 0.95 would mean restricting to gains that have less
+            than a 0.05 change of being generated randomly through choice of a random split).</param>
+            <param name="maxCategoricalGroupsPerNode">Maximum categorical split points to consider when splitting on a 
+            categorical feature.</param>
+            <param name="maxCategoricalSplitPointPerNode"></param>
+            <param name="bsrMaxTreeOutput">-1 if best step ranking is to be disabled, otherwise it
+            is interpreted as being similar to the maximum output for a leaf</param>
+            <param name="parallelTraining"></param>
+            <param name="minDocsPercentageForCategoricalSplit"></param>
+            <param name="bundling"></param>
+            <param name="minDocsForCategoricalSplit"></param>
+            <param name="bias"></param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.FitTargets(Microsoft.ML.Runtime.IChannel,System.Boolean[],System.Double[])">
+            <summary>
+            Learns a new tree for the current outputs
+            </summary>
+            <returns>A regression tree</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.Initialize(System.Boolean[])">
+            <summary>
+            Clears data structures
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.FindBestSplitOfRoot(System.Double[])">
+            <summary>
+            finds best feature/threshold split of root node. Fills in BestSplitInfoPerLeaf[0]
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.FindBestSplitOfSiblings(System.Int32,System.Int32,Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning,System.Double[])">
+            <summary>
+            Finds best feature/threshold split of <paramref name="lteChild"/> and <paramref name="gtChild"/>,
+            and fills in the corresponding elements of <see cref="F:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.BestSplitInfoPerLeaf"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.FindAndSetBestFeatureForLeaf(Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates)">
+            <summary>
+            After the gain for each feature has been computed, this function chooses the gain maximizing feature
+            and sets its info in the right places
+            This method is overriden in MPI version of the code
+            </summary>
+            <param name="leafSplitCandidates">the FindBestThesholdleafSplitCandidates data structure that contains the best split information</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.FindBestThresholdForFlockThreadWorker(System.Int32)">
+            <summary>
+            The multithreading entry-point: finds the best threshold for a given flock at a given leaf.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.GetActiveFeatures(System.Int32,System.Int32)">
+            <summary>
+            Returns the set of features that are active within a particular range.
+            </summary>
+            <param name="min">The inclusive lower bound of the feature indices</param>
+            <param name="lim">The exclusive upper bound of the feature indices</param>
+            <returns>The feature indices within the range that are active</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.GetLeafSplitGain(System.Int32,System.Double,System.Double)">
+            <summary>
+            Returns the split gain for a particular leaf. Used on two leaves to calculate
+            the squared error gain for a particular leaf.
+            </summary>
+            <param name="count">Number of documents in this leaf</param>
+            <param name="sumTargets">Sum of the target values for this leaf</param>
+            <param name="sumWeights">Sum of the weights for this leaf, not meaningful if
+            <see cref="P:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.HasWeights"/> is <c>false</c></param>
+            <returns>The gain in least squared error</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.CalculateSplittedLeafOutput(System.Int32,System.Double,System.Double)">
+            <summary>
+            Calculates the output value for a leaf after splitting.
+            </summary>
+            <param name="count">Number of documents in this leaf</param>
+            <param name="sumTargets">Sum of the target values for this leaf</param>
+            <param name="sumWeights">Sum of the weights for this leaf, not meaningful if
+            <see cref="P:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.HasWeights"/> is <c>false</c></param>
+            <returns>The output value for a leaf</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.FindBestThresholdFromHistogram(Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase,Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates,System.Int32)">
+            <summary>
+            Finds the best threshold to split on, and sets the appropriate values in the LeafSplitCandidates data structure.
+            </summary>
+            <param name="histogram">The sufficient stats accumulated for the flock</param>
+            <param name="leafSplitCandidates">The LeafSplitCandidates data structure</param>
+            <param name="flock">The index of the flock containing this feature</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates">
+            <summary>
+            Contains the memory data structures required for finding the best threshold for a given
+            feature at a given leaf.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates.Initialize(System.Int32,Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning,System.Double[],System.Double[],System.Boolean)">
+            <summary>
+            Initializes the object for a specific leaf, with a certain subset of documents.
+            </summary>
+            <param name="leafIndex">The leaf index</param>
+            <param name="partitioning">The partitioning object that knows which documents have reached that leaf</param>
+            <param name="targets">The array of targets, which the regression tree is trying to fit</param>
+            <param name="weights">The array of weights for the document</param>
+            <param name="filterZeros">Whether filtering of zero gradients was turned on or not</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates.Initialize(System.Double[],System.Double[],System.Boolean)">
+            <summary>
+            Initializes the object for computing the root node split
+            </summary>
+            <param name="targets">the array of targets, which the regression tree is trying to fit</param>
+            <param name="weights"></param>
+            <param name="filterZeros"></param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates.Initialize">
+            <summary>
+            Initializes the object to do nothing
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.SplitInfo">
+            <summary>
+            A struct to store information about each leaf for splitting
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.TreeLearner.GetSizeOfReservedMemory">
+            <summary>
+            Get size of reserved memory for the tree learner.
+            The default implementation returns 0 directly, and the subclasses can return
+            different value if it reserves memory for training.
+            </summary>
+            <returns>size of reserved memory</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.TreeLearnerException">
+            <summary>
+            An exception class for an error which occurs in the midst of learning a tree.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.WinLossCalculator.#ctor(System.Int32,System.String)">
+            <summary>
+            Constructs a WinLoss calculator
+            </summary>
+            <param name="maxDocsPerQuery">the maximum number of documents per query</param>
+            <param name="sortingAlgorithm">a string describing the sorting algorithm to use</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.WinLossCalculator.WinLossRangeFromScores(Microsoft.ML.Runtime.FastTree.Internal.Dataset,System.Int16[],System.Double[])">
+            <summary>
+            calculates the average WinLoss given the scores array
+            For performance reason it duplicates some
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.Dataset">
+            <summary>
+            A dataset of features.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.#ctor(Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton,Microsoft.ML.Runtime.FastTree.Internal.FeatureFlockBase[])">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.Dataset"/> class.
+            </summary>
+            <param name="datasetSkeleton">The dataset skeleton corresponding to the features</param>
+            <param name="flocks">An array of feature flocks</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.MapFeatureToFlockAndSubFeature(System.Int32,System.Int32@,System.Int32@)">
+            <summary>
+            Maps a global feature index, to the index of the particular flock, as well as the
+            index of the subfeature within that flock.
+            </summary>
+            <param name="feature">The index of the feature at the dataset level</param>
+            <param name="flock">The index of the flock containing this feature</param>
+            <param name="subfeature">The index of the feature within the flock</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.FlockToFirstFeature(System.Int32)">
+            <summary>
+            Given a flock index, returns the index of the first feature in this flock.
+            </summary>
+            <param name="flock">Index of the flock</param>
+            <returns>The index of the first feature that belongs to this flock</returns>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.Skeleton">
+            <summary>
+            Gets the dataset skeleton.
+            </summary>
+            <value>The skeleton.</value>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.Ratings">
+            <summary>
+            Gets the labels.
+            </summary>
+            <value>The labels.</value>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.Boundaries">
+            <summary>
+            Gets the boundaries.
+            </summary>
+            <value>The boundaries.</value>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.QueryIds">
+            <summary>
+            Gets the query ids.
+            </summary>
+            <value>The query ids.</value>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DocIds">
+            <summary>
+            Gets the doc ids.
+            </summary>
+            <value>The doc ids.</value>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.MaxDcg">
+            <summary>
+            Gets the max DCG.
+            </summary>
+            <value>The max DCG.</value>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.MaxDocsPerQuery">
+            <summary>
+            Gets the max number of docs per any query.
+            </summary>
+            <value>The max number of docs per any query.</value>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.NumDocs">
+            <summary>
+            Gets the number of docs in the entire dataset.
+            </summary>
+            <value>The number of docs in the entire dataset.</value>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.NumDocsInQuery(System.Int32)">
+            <summary>
+            Nums the docs in a given query.
+            </summary>
+            <param name="queryIndex">Index of the query.</param>
+            <returns>the number of docs in the query</returns>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.NumQueries">
+            <summary>
+            Gets the number of queries in the dataset.
+            </summary>
+            <value>The number of queries in the dataset.</value>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DocToQuery">
+            <summary>
+            Returns the document to query
+            </summary>
+            <returns>The associated document</returns>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.SampleWeights">
+            <summary>
+            Returns the query weights object in underlying dataset skeleton
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.SizeInBytes">
+            <summary>
+            Returns the number of bytes written by the member ToByteArray()
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.Flocks">
+            <summary>
+            Gets the array of features.
+            </summary>
+            <value>The array of features.</value>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.NumFlocks">
+            <summary>
+            The number of feature flocks.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.NumFeatures">
+            <summary>
+            The number of features.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.Split(System.Double[],System.Int32,System.Boolean)">
+            <summary>
+            Split a dataset by queries into disjoint parts
+            </summary>
+            <param name="fraction">an array of the fractional size of each part, must sum to 1.0</param>
+            <param name="randomSeed">a seed that deterministically defines the split</param>
+            <param name="destroyThisDataset">do you want the features of this dataset to be destroyed on-the-fly as the new datasets are created</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.GetSubDataset(System.Int32[],System.Boolean)">
+            <summary>
+            Creates a new Dataset, which includes a subset of the docs in this Dataset.
+            </summary>
+            <param name="docIndices">A sorted array of doc indices</param>
+            <param name="destroyThisDataset">Determines if this Dataset is deleted on the fly as the
+            new one is created (this reduces peak memory)</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.GetFeatureBinRowwiseIndexer(System.Boolean[])">
+            <summary>
+            Returns a row-wise forward indexer across multiple features in the dataset.
+            </summary>
+            <param name="activeFeatures">Boolean array indicating active features, or null to
+            indicate all features should be used</param>
+            <returns>Row forward indexer</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton">
+            <summary>
+            A class that contains all of the feature-independent data of the dataset
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton.#ctor(System.Int16[],System.Int32[],System.UInt64[],System.UInt64[],System.Double[])">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton"/> class.
+            </summary>
+            <param name="ratings"></param>
+            <param name="boundaries">The boundaries.</param>
+            <param name="queryIds">The query ids.</param>
+            <param name="docIds">The doc ids.</param>
+            <param name="actualTargets"></param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton.#ctor(System.Int16[],System.Int32[],System.UInt64[],System.UInt64[],System.Double[][],System.Double[])">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton"/> class.
+            </summary>
+            <param name="ratings">The ratings.</param>
+            <param name="boundaries">The boundaries.</param>
+            <param name="queryIds">The query ids.</param>
+            <param name="docIds">The doc ids.</param>
+            <param name="maxDcg">The vector of maxDCG.</param>
+            <param name="actualTargets"></param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton.CheckConsistency">
+            <summary>
+            Checks the consistency of the DatasetSkeleton
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton.SizeInBytes">
+            <summary>
+            Returns the number of bytes written by the member ToByteArray()
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton.ToByteArray(System.Byte[],System.Int32@)">
+            <summary>
+            Writes a binary representation of this class to a byte buffer, at a given position.
+            The position is incremented to the end of the representation
+            </summary>
+            <param name="buffer">a byte array where the binary represenaion is written</param>
+            <param name="position">the position in the byte array</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton.Concat(Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton[])">
+            <summary>
+            Takes an array of DatasetSkeleton objects and concatenates them into one big DatasetSkeleton
+            </summary>
+            <param name="parts">An array of DatasetSkeletons</param>
+            <returns>A concatenated DatasetSkeleton</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton.MaxDcgRange(System.Int16[],System.Int32[],System.Int32)">
+            <summary>
+            Calculates natural-based max DCG at all truncations from 1 to trunc
+            </summary>
+            <param name="labels">vector of labels</param>
+            <param name="boundaries">vector of query boundaries</param>
+            <param name="trunc">max truncation</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton.SetConcatenatedAuxiliaryData(Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton[],Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton)">
+            <summary>
+            Given the auxiliary data in a bunch of parts, set the concatenated dataset appropriately.
+            </summary>
+            <param name="parts">The individual parts of the dataset</param>
+            <param name="concat">The concatenated version of this dataset</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton.SetData(System.String,System.Array,System.Boolean)">
+            <summary>
+            Sets some named query or document level auxiliary data.
+            </summary>
+            <param name="name">The name of the parameter</param>
+            <param name="array"></param>
+            <param name="queryLevel"></param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.DatasetSkeleton.GetData``1(System.String)">
+            <summary>
+            Retrieves some auxiliary data previously set to this skeleton.
+            </summary>
+            <typeparam name="T">The type of the array, which should match the type passed in</typeparam>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.Dataset.RowForwardIndexer">
+            <summary>
+            Structure allowing forward indexing by row, across multiple features in the dataset.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Dataset.RowForwardIndexer.Row.Item(System.Int32)">
+            <summary>
+            Indexes the value of a feature for this row.
+            </summary>
+            <param name="featureIndex">The feature index</param>
+            <returns>The binned valued of a feature for this row</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dataset.RowForwardIndexer.#ctor(Microsoft.ML.Runtime.FastTree.Internal.Dataset,System.Boolean[])">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="dataset">The dataset to create the indexer over</param>
+            <param name="active">Either null to indicate all columns should be active, or
+            a boolean array of length equal to the number of features that should be active</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.DenseIntArray">
+            <summary>
+            Abstract class implementing some common functions of the dense int array types.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.DenseIntArray.Item(System.Int32)">
+            <summary>
+            Gets or sets the value at this index.
+            Value must be in legal range 0...((2^<see cref="P:Microsoft.ML.Runtime.FastTree.Internal.IntArray.BitsPerItem"/>)-1).
+            </summary>
+            <param name="index">Index of value to get or set</param>
+            <returns>The value at this index</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DenseIntArray.Clone(System.Int32[])">
+            <summary>
+            Clone an IntArray containing only the items indexed by <paramref name="itemIndices"/>
+            </summary>
+            <param name="itemIndices"> item indices will be contained in the cloned IntArray  </param>
+            <returns> The cloned IntArray </returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.Dense0BitIntArray">
+            <summary>
+            A "null" feature representing only zeros.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dense0BitIntArray.SizeInBytes">
+            <summary>
+            Returns the number of bytes written by the member ToByteArray()
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dense0BitIntArray.ToByteArray(System.Byte[],System.Int32@)">
+            <summary>
+            Writes a binary representation of this class to a byte buffer, at a given position.
+            The position is incremented to the end of the representation
+            </summary>
+            <param name="buffer">a byte array where the binary represenaion is written</param>
+            <param name="position">the position in the byte array</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.Dense10BitIntArray">
+            <summary>
+            A class to represent features using 10 bits.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dense10BitIntArray.SizeInBytes">
+            <summary>
+            Returns the number of bytes written by the member ToByteArray()
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dense10BitIntArray.ToByteArray(System.Byte[],System.Int32@)">
+            <summary>
+            Writes a binary representation of this class to a byte buffer, at a given position.
+            The position is incremented to the end of the representation
+            </summary>
+            <param name="buffer">a byte array where the binary represenaion is written</param>
+            <param name="position">the position in the byte array</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.Dense8BitIntArray">
+            <summary>
+            A class to represent features using 8 bits
+            </summary>
+            <remarks>Represents values -1...(2^s-2)
+            0-bit array only represents the value -1</remarks>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dense8BitIntArray.SizeInBytes">
+            <summary>
+            Returns the number of bytes written by the member ToByteArray()
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dense8BitIntArray.ToByteArray(System.Byte[],System.Int32@)">
+            <summary>
+            Writes a binary representation of this class to a byte buffer, at a given position.
+            The position is incremented to the end of the representation
+            </summary>
+            <param name="buffer">a byte array where the binary represenaion is written</param>
+            <param name="position">the position in the byte array</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.Dense4BitIntArray">
+            <summary>
+            A class to represent features using 4 bits.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.Dense4BitIntArray._data">
+            <summary>
+            For a given byte, the high 4 bits is the first value, the low 4 bits is the next value.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dense4BitIntArray.SizeInBytes">
+            <summary>
+            Returns the number of bytes written by the member ToByteArray()
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dense4BitIntArray.ToByteArray(System.Byte[],System.Int32@)">
+            <summary>
+            Writes a binary representation of this class to a byte buffer, at a given position.
+            The position is incremented to the end of the representation
+            </summary>
+            <param name="buffer">a byte array where the binary represenaion is written</param>
+            <param name="position">the position in the byte array</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.Dense16BitIntArray">
+            <summary>
+            A class to represent features using 16 bits.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dense16BitIntArray.SizeInBytes">
+            <summary>
+            Returns the number of bytes written by the member ToByteArray()
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dense16BitIntArray.ToByteArray(System.Byte[],System.Int32@)">
+            <summary>
+            Writes a binary representation of this class to a byte buffer, at a given position.
+            The position is incremented to the end of the representation
+            </summary>
+            <param name="buffer">a byte array where the binary represenaion is written</param>
+            <param name="position">the position in the byte array</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.Dense32BitIntArray">
+            <summary>
+            A class to represent features using 32 bits.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dense32BitIntArray.SizeInBytes">
+            <summary>
+            Returns the number of bytes written by the member ToByteArray()
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Dense32BitIntArray.ToByteArray(System.Byte[],System.Int32@)">
+            <summary>
+            Writes a binary representation of this class to a byte buffer, at a given position.
+            The position is incremented to the end of the representation
+            </summary>
+            <param name="buffer">a byte array where the binary represenaion is written</param>
+            <param name="position">the position in the byte array</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.Feature">
+            <summary>
+            Represents a binned feature
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.Feature.FeatureType">
+            <summary>
+            The type of the feature. This is serialized as part of the Bing extraction BIN file,
+            so it should remain binary compatible from version to version.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Feature.Length">
+            <summary>
+            Returns the number of entires (documents) in the feature
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Feature.SizeInBytes">
+            <summary>
+            Returns the number of bytes written by the member ToByteArray()
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.Feature.ToByteArray(System.Byte[],System.Int32@)">
+            <summary>
+            Writes a binary representation of this class to a byte buffer, at a given position.
+            The position is incremented to the end of the representation
+            </summary>
+            <param name="buffer">a byte array where the binary represenaion is written</param>
+            <param name="position">the position in the byte array</param>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.Feature.Bins">
+            <summary>
+            Gets the compactIntArray of bin values.
+            </summary>
+            <value>The bin values.</value>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.TsvFeature.#ctor(Microsoft.ML.Runtime.FastTree.Internal.IntArray,System.UInt32[],System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.Feature"/> class.
+            </summary>
+            <param name="bins">The bins.</param>
+            <param name="valueMap"></param>
+            <param name="name">The name.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.TsvFeature.#ctor(System.String,System.Int32)">
+            <summary>
+            Constructs an empty (all zero) feature
+            </summary>
+            <param name="name"></param>
+            <param name="length"></param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.TsvFeature.SizeInBytes">
+            <summary>
+            Returns the number of bytes written by the member ToByteArray()
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.TsvFeature.ToByteArray(System.Byte[],System.Int32@)">
+            <summary>
+            Writes a binary representation of this class to a byte buffer, at a given position.
+            The position is incremented to the end of the representation
+            </summary>
+            <param name="buffer">a byte array where the binary represenaion is written</param>
+            <param name="position">the position in the byte array</param>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.TsvFeature.ValueMap">
+            <summary>
+            Gets the value that represents each bin
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.TsvFeature.Clone(System.Int32[])">
+            <summary>
+            Clone a TSVFeature containing only the items indexed by <paramref name="itemIndices"/>
+            </summary>
+            <param name="itemIndices"> item indices will be contained in the cloned TSVFeature  </param>
+            <returns> The cloned TSVFeature </returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.TsvFeature.Concat(Microsoft.ML.Runtime.FastTree.Internal.TsvFeature[])">
+            <summary>
+            Concatenates an array of features into one long feature
+            </summary>
+            <param name="parts">An array of features</param>
+            <returns>A concatenated feature</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.FeatureHistogram">
+            <summary>
+            Class to represent statistics of the feature used by LeastSquaresRegressionTreeLearner
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.FeatureHistogram.#ctor(Microsoft.ML.Runtime.FastTree.Internal.IntArray,System.Int32,System.Boolean)">
+            <summary>
+            Make a new FeatureHistogram
+            </summary>
+            <param name="bins">The bins we will be calculating sumups over</param>
+            <param name="numBins">The number of bins, should be at least as large as the number of bins</param>
+            <param name="useWeights">Allocates weights array when true</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.FeatureHistogram.EstimateMemoryUsedForFeatureHistogram(System.Int32,System.Boolean)">
+            <summary>
+            This function returns the estimated memory used for a FeatureHistogram object according to given
+            number of bins.
+            </summary>
+            <param name="numBins">number of bins</param>
+            <param name="hasWeights">weights array is counted when true</param>
+            <returns>estimated size of memory used for a feature histogram object</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.FeatureHistogram.Subtract(Microsoft.ML.Runtime.FastTree.Internal.FeatureHistogram)">
+            <summary>
+            Subtract from myself the counts of the child histogram
+            </summary>
+            <param name="child">Another histogram to subtract</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.IntArray">
+            <summary>
+            An object representing an array of integers
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.IntArray.Length">
+            <summary>
+            The virtual length of the array
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.IntArray.SizeInBytes">
+            <summary>
+            Returns the number of bytes written by the member ToByteArray()
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.IntArray.ToByteArray(System.Byte[],System.Int32@)">
+            <summary>
+            Writes a binary representation of this class to a byte buffer, at a given position.
+            The position is incremented to the end of the representation
+            </summary>
+            <param name="buffer">a byte array where the binary representation is written</param>
+            <param name="position">the position in the byte array</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.IntArray.NumBitsNeeded(System.Int32)">
+            <summary>
+            Number of bytes needed to store this number of values
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.IntArray.New(System.Byte[],System.Int32@)">
+            <summary>
+            Creates a new int array given a byte representation
+            </summary>
+            <param name="buffer">the byte array representation of the dense array. The buffer can be larger than needed since the caller might be re-using buffers from a pool</param>
+            <param name="position">the position in the byte array</param>
+            <returns>the int array object</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.IntArray.Clone(Microsoft.ML.Runtime.FastTree.Internal.IntArrayBits,Microsoft.ML.Runtime.FastTree.Internal.IntArrayType)">
+            <summary>
+            Clones the contents of this IntArray into an new IntArray
+            </summary>
+            <param name="bitsPerItem">The number of bits per item in the created IntArray</param>
+            <param name="type">The type of the new IntArray</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.IntArray.Clone(System.Int32[])">
+            <summary>
+            Clone an IntArray containing only the items indexed by <paramref name="itemIndices"/>
+            </summary>
+            <param name="itemIndices"> item indices will be contained in the cloned IntArray  </param>
+            <returns> The cloned IntArray </returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.IntArray.GetIndexer">
+            <summary>
+            Gets an indexer into the array
+            </summary>
+            <returns>An indexer into the array</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.IntArray.Compress(System.UInt32[])">
+            <summary>
+            Finds the most space efficient representation of the feature
+            (with slight slack cut for dense features). The behavior of
+            this method depends upon the static value <see cref="F:Microsoft.ML.Runtime.FastTree.Internal.IntArray.CompatibilityLevel"/>.
+            </summary>
+            <param name="workarray">Should be non-null if you want it to
+            consider segment arrays.</param>
+            <returns>Returns a more space efficient version of the array,
+            or the item itself if that is impossible, somehow.</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.IIntArrayForwardIndexer">
+            <summary>
+            Interface for objects that can index into an <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.IntArray"/>, but only with a non-decreasing sequence of indices.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.Internal.IIntArrayForwardIndexer.Item(System.Int32)">
+            <summary>
+            Gets the element at the given index.
+            </summary>
+            <param name="index">Index to get</param>
+            <returns>The value at the index</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DeltaRepeatIntArray.ToByteArray(System.Byte[],System.Int32@)">
+            <summary>
+            Writes a binary representation of this class to a byte buffer, at a given position.
+            The position is incremented to the end of the representation
+            </summary>
+            <param name="buffer">a byte array where the binary represenaion is written</param>
+            <param name="position">the position in the byte array</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DeltaRepeatIntArray.Clone(System.Int32[])">
+            <summary>
+            Clone an IntArray containing only the items indexed by <paramref name="itemIndices"/>
+            </summary>
+            <param name="itemIndices"> item indices will be contained in the cloned IntArray  </param>
+            <returns> The cloned IntArray </returns>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.Internal.SegmentIntArray.TransitionCost">
+            <summary>
+            The cost of a transition between segments in bits.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.SegmentIntArray.StatsOfBestEncoding(System.UInt32[],System.Int32,System.Boolean,System.Int64@,System.Int32@,System.UInt32@)">
+             <summary>
+             Finds the bits necessary for the optimal variable bit encoding of this
+             array. If we are also finding the actual optimal path, it can only work
+            
+             This is a considerably less efficienct managed analogue to the
+             C_SegmentFindOptimalPath and C_SegmentFindOptimalCost functions.
+             It is used by the class only when not using the unmanaged library.
+             </summary>
+             <param name="ivalues">The values for which we should find the optimal cost. If
+             findPath is active, the most significant 5 bits will be used to store the bitness
+             with which this path should be chosen.</param>
+             <param name="bitsForMaxItem">This should be the maximum number of bits necessary
+             to encode the largest item in that array, or a higher value. Owing to the nature
+             of the values as 32 bit quantities this value should be in the range [0,32], or
+             21 if we are finding the
+             cannot exceed 31.</param>
+             <param name="findPath">Whether we should find the best path, by also storing the
+             optimal path in the most 5 significant digits.</param>
+             <param name="bits">The number of bits necessary for the optimal encoding.</param>
+             <param name="transitions">The number of transitions necessary in the
+             optimal encoding (only if findPath is true).</param>
+             <param name="max">The maximum element in the ivalues array.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.SegmentIntArray.Clone(System.Int32[])">
+            <summary>
+            Clone an IntArray containing only the items indexed by <paramref name="itemIndices"/>
+            </summary>
+            <param name="itemIndices"> item indices will be contained in the cloned IntArray  </param>
+            <returns> The cloned IntArray </returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.DeltaSparseIntArray">
+            <summary>
+            This <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.IntArray"/> implementation represents a sequence of values using parallel
+            arrays of both values, as well as deltas indicating the number of values to the next
+            explicit value. Values "between" these deltas are implicitly zero.
+            
+            Note that it is possible to misuse the deltas by making some of them themselves 0, allowing
+            us to represent multiple values per row. In this case, <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.IntArray.GetEnumerator"/>
+            and <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.IntArray.GetIndexer"/> will not have sensible values, but
+            <see cref="M:Microsoft.ML.Runtime.FastTree.Internal.IntArray.Sumup(Microsoft.ML.Runtime.FastTree.Internal.SumupInputData,Microsoft.ML.Runtime.FastTree.Internal.FeatureHistogram)"/> will work and accumulate the same target into multiple bins.
+            This trick should be used with caution, and is useful for the <see cref="T:Microsoft.ML.Runtime.FastTree.Internal.NHotFeatureFlock"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DeltaSparseIntArray.#ctor(System.Int32,Microsoft.ML.Runtime.FastTree.Internal.IntArrayBits,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.Int32,System.Int32}})">
+            <summary>
+            Construct a sparse int array from index, value pairs.
+            </summary>
+            <param name="length">The total length of the constructed array.</param>
+            <param name="bitsPerItem">The number of bits required to store the values.</param>
+            <param name="nonZeroValues">An ordered enumerable of (index,value) pairs.
+            Each index should be strictly increasing as the iterable proceeds.</param>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DeltaSparseIntArray.Clone(System.Int32[])">
+            <summary>
+            Clone an IntArray containing only the items indexed by <paramref name="itemIndices"/>
+            </summary>
+            <param name="itemIndices"> item indices will be contained in the cloned IntArray  </param>
+            <returns> The cloned IntArray </returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DeltaSparseIntArray.SizeInBytes">
+            <summary>
+            Returns the number of bytes written by the member ToByteArray()
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.DeltaSparseIntArray.ToByteArray(System.Byte[],System.Int32@)">
+            <summary>
+            Writes a binary representation of this class to a byte buffer, at a given position.
+            The position is incremented to the end of the representation
+            </summary>
+            <param name="buffer">a byte array where the binary represenaion is written</param>
+            <param name="position">the position in the byte array</param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.BinFinder">
+            <summary>
+            A class that bins vectors of doubles into a specified number of equal mass bins.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.BinFinder.FindDistinctCounts(Microsoft.ML.Runtime.Data.VBuffer{System.Double}@,System.Double[],System.Int32[])">
+            <summary>
+            Finds the distinct values in the <paramref name="values"/>. You must have
+            pre-allocated <paramref name="distinctValues"/> and <paramref name="counts"/> yourself.
+            The scheme is destructive, because it modifies the arrays within <paramref name="values"/>.
+            </summary>
+            <param name="values">The values we are binning</param>
+            <param name="distinctValues">This working array will be filled with a sorted list of the
+            distinct values detected within <paramref name="values"/></param>
+            <param name="counts">This working array will be filled with a sorted list of the distinct
+            values detected within <paramref name="values"/></param>
+            <returns>The logical length of both <paramref name="distinctValues"/> and
+            <paramref name="counts"/></returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.BinFinder.FindBinsFromDistinctCounts(System.Double[],System.Int32[],System.Int32,System.Int32,System.Double[]@,System.Int32@)">
+            <summary>
+            Finds the bins.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.BinFinder.IsTrivial(System.Int32[],System.Int32,System.Int32)">
+            <summary>
+            Check to see if we can "trivialize" this feature, because it would
+            be impossible to split with the indicated minimum examples per leaf.
+            </summary>
+            <param name="distinctCounts">The counts of each distinct bin value</param>
+            <param name="numDistinct">The logical length of <paramref name="distinctCounts"/></param>
+            <param name="minPerLeaf">The minimum examples per leaf we are filtering on</param>
+            <returns>Whether this feature is trivial, that is, it would be impossible to split on it</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.BinFinder.FindBins(Microsoft.ML.Runtime.Data.VBuffer{System.Double}@,System.Int32,System.Int32,System.Double[]@)">
+            <summary>
+            Finds the bins.
+            </summary>
+            <param name="values">The values we are binning</param>
+            <param name="maxBins">The maximum number of bins to find</param>
+            <param name="minPerLeaf">The minimum number of documents per leaf</param>
+            <param name="binUpperBounds">The calculated upper bound of each bin</param>
+            <returns>Whether finding the bins is successful. If there were NaN values in <paramref name="values"/>,
+            this will return false and the output arrays will be <c>null</c>. Otherwise it will return true.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.IniFileParserInterface.GetFeatureMap">
+            <summary>
+            Gets the map between feature names and indices
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.IniFileParserInterface.GetFeatureEvaluators">
+            <summary>
+            Gets the list of FeatureEvaluators
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.Internal.IniFileParserInterface.#ctor(System.IntPtr)">
+            <summary>
+            Creates an InputExtractor wrapper for a given unmanaged pointer
+            </summary>
+            <param name="pInputExtractor"></param>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.IniFileParserInterface.FeatureMap">
+            <summary>
+            Wraps the functions of InputExtractor that map between raw feature names and indices
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.Internal.IniFileParserInterface.FeatureEvaluator">
+            <summary>
+            Wraps the Evaluate method of InputExtractor (and associated methods)
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreeRegressionTrainer.GetDatasetRegressionLabels(Microsoft.ML.Runtime.FastTree.Internal.Dataset)">
+            <summary>
+            Gets the regression labels that were stored in the dataset skeleton, or
+            constructs them from the ratings if absent. This returns null if the
+            dataset itself is null.
+            </summary>
+            <param name="set">The dataset</param>
+            <returns>The list of regression targets, or null if <paramref name="set"/> was null</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.FastTreeTweedieTrainer">
+            <summary>
+            The Tweedie boosting model follows the mathematics established in:
+            Yang, Quan, and Zou. "Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models."
+            https://arxiv.org/pdf/1508.06378.pdf
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreeTweedieTrainer.GetDatasetRegressionLabels(Microsoft.ML.Runtime.FastTree.Internal.Dataset)">
+            <summary>
+            Gets the regression labels that were stored in the dataset skeleton, or
+            constructs them from the ratings if absent. This returns null if the
+            dataset itself is null.
+            </summary>
+            <param name="set">The dataset</param>
+            <returns>The list of regression targets, or null if <paramref name="set"/> was null</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreeRankingTrainer.CreateStandardTest(Microsoft.ML.Runtime.FastTree.Internal.Dataset)">
+            <summary>
+            Create standard test for dataset.
+            </summary>
+            <param name="dataset">dataset used for testing</param>
+            <returns>standard test for the dataset</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreeRankingTrainer.CreateSpecialTrainSetTest">
+            <summary>
+            Create the special test for train set.
+            </summary>
+            <returns>test for train set</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreeRankingTrainer.CreateSpecialValidSetTest">
+            <summary>
+            Create the special test for valid set.
+            </summary>
+            <returns>test for train set</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreeRankingTrainer.CreateFirstTestSetTest">
+            <summary>
+            Create the test for the first test set.
+            </summary>
+            <returns>test for the first test set</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreeRankingTrainer.GetTestGraphHeader">
+            <summary>
+            Get the header of test graph
+            </summary>
+            <returns>Test graph header</returns>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.TreeArgs.GainConfidenceLevel">
+            Only consider a gain if its likelihood versus a random choice gain is above a certain value.
+            So 0.95 would mean restricting to gains that have less than a 0.05 change of being generated randomly through choice of a random split.
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.FastTreeShared">
+            <summary>
+            FastTreeTrainerBase is generic class and can't have shared object among classes.
+            This class is to provide common for all classes object which we can use for lock purpose.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreeTrainerBase`2.GetTestGraphHeader">
+            <summary>
+            A virtual method that is used to print header of test graph.
+            Appliations that need printing test graph are supposed to override
+            it to print specific test graph header.
+            </summary>
+            <returns> string representation of test graph header </returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreeTrainerBase`2.GetTestGraphLine">
+            <summary>
+            A virtual method that is used to print a single line of test graph.
+            Applications that need printing test graph are supposed to override
+            it to print a specific line of test graph after a new iteration is finished.
+            </summary>
+            <returns> string representation of a line of test graph </returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreeTrainerBase`2.ComputeTests">
+            <summary>
+            A virtual method that is used to compute test results after each iteration is finished.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreeTrainerBase`2.MakeGradientWrapper(Microsoft.ML.Runtime.IChannel)">
+            <summary>
+            Creates weights wrapping (possibly, trivial) for gradient target values.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.DataConverter.BinUpperBounds">
+            <summary>
+            The per-feature bin upper bounds. Implementations may differ on when all of the items
+            in this array are initialized to non-null values but it must happen at least no later
+            than immediately after we return from <see cref="M:Microsoft.ML.Runtime.FastTree.DataConverter.GetDataset"/>.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.DataConverter.FeatureMap">
+            <summary>
+            In the event that any features are filtered, this will contain the feature map, where
+            the indices are the indices of features within the dataset, and the tree as we are
+            learning, and the values are the indices of the features within the original input
+            data. This array is used to "rehydrate" the tree once we finish training, so that the
+            feature indices are once again over the full set of features, as opposed to the subset
+            of features we actually trained on. This can be null in the event that no filtering
+            occurred.
+            </summary>
+            <seealso cref="M:Microsoft.ML.Runtime.FastTree.Internal.Ensemble.RemapFeatures(System.Int32[])"/>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.DataConverter.CalculateBins(Microsoft.ML.Runtime.FastTree.Internal.BinFinder,Microsoft.ML.Runtime.Data.VBuffer{System.Double}@,System.Int32,System.Int32,System.Double[]@,System.Int32[]@,System.Double[]@)">
+            <summary>
+            Bins and input vector of feature values.
+            </summary>
+            <param name="binFinder">The instead of the bin finder to use</param>
+            <param name="values">The values for one particular feature value across all examples</param>
+            <param name="maxBins">The maximum number of bins to find</param>
+            <param name="minDocsPerLeaf"></param>
+            <param name="distinctValues">The working array of distinct values, a temporary buffer that should be called
+            to multiple invocations of this method, but not meant to be useful to the caller. This method will reallocate
+            the array to a new size if necessary. Passing in null at first is acceptable.</param>
+            <param name="distinctCounts">Similar working array, but for distinct counts</param>
+            <param name="upperBounds">The bin upper bounds, maximum length will be <paramref name="maxBins"/></param>
+            <returns>Whether finding the bins was successful or not. It will be unsuccessful iff <paramref name="values"/>
+            has any missing values. In that event, the out parameters will be left as null.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.DataConverter.CreateSingletonFlock(Microsoft.ML.Runtime.IChannel,Microsoft.ML.Runtime.Data.VBuffer{System.Double}@,System.Int32[],System.Double[])">
+            <summary>
+            Create a new feature flock with a given name, values and specified bin bounds.
+            </summary>
+            <param name="ch"></param>
+            <param name="values">The values for this feature, that will be binned.</param>
+            <param name="binnedValues">A working array of length equal to the length of the input feature vector</param>
+            <param name="binUpperBounds">The upper bounds of the binning of this feature.</param>
+            <returns>A derived binned derived feature vector.</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.DataConverter.DiskImpl.ConstructDropSlotRanges(Microsoft.ML.Runtime.Data.ISlotCursor,Microsoft.ML.Runtime.Data.ValueGetter{Microsoft.ML.Runtime.Data.VBuffer{System.Single}},Microsoft.ML.Runtime.Data.VBuffer{System.Single}@)">
+            <summary>
+            Returns a slot dropper object that has ranges of slots to be dropped, 
+            based on an examination of the feature values.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.DataConverter.MemImpl.CreateDatasetSkeleton">
+            <summary>
+            Create an artificial metadata object to pad the Dataset
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.DataConverter.ValuesList">
+            <summary>
+            A mutable list of index,value that may be kept sparse or dense.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.DataConverter.ValuesList.CountIndicesGT(System.Int32,System.Double)">
+            <summary>
+            Returns the count of all positions greater than an indicated value.
+            </summary>
+            <param name="length">The limit of indices to check</param>
+            <param name="gtValue">The value against which the greater-than
+            comparison is made</param>
+            <returns>The count of all indices in the range of 0 to <paramref name="length"/>
+            exclusive whose values are greater than <paramref name="gtValue"/></returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.DataConverter.ValuesList.AllIndicesGT(System.Int32,System.Double)">
+            <summary>
+            Return all indices that are greater than an indicated value.
+            </summary>
+            <param name="lim">The limit of indices to return</param>
+            <param name="gtValue">The value against which the greater-than
+            comparison is made</param>
+            <returns>All indices in the range of 0 to <paramref name="lim"/> exclusive
+            whose values are greater than <paramref name="gtValue"/>, in
+            increasing order</returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.DataConverter.ValuesList.Binned(System.Double[],System.Int32)">
+            <summary>
+            An enumerable of the row/bin pair of every non-zero bin row according to the
+            binning passed into this method.
+            </summary>
+            <param name="binUpperBounds">The binning to use for the enumeration</param>
+            <param name="length">The number of rows in this feature</param>
+            <returns>An enumerable that returns a pair of every row-index and binned value,
+            where the row indices are increasing, the binned values are positive</returns>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.DataConverter.ValuesList.ForwardIndexer.Item(System.Int32,System.Int32)">
+            <summary>
+            Access the value of a particular feature, at a particular row.
+            </summary>
+            <param name="featureIndex">A feature index, which indexes not the global feature indices,
+            but the index into the subset of features specified at the constructor time</param>
+            <param name="rowIndex">The row index to access, which must be non-decreasing, and must
+            indeed be actually increasing for access on the same feature (e.g., if you have two features,
+            it is OK to access <c>[1, 5]</c>, then <c>[0, 5]</c>, but once this is done you cannot
+            access the same feature at the same position.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.DataConverter.ValuesList.ForwardIndexer.#ctor(Microsoft.ML.Runtime.FastTree.DataConverter.ValuesList[],System.Int32[],System.Int32[]@)">
+            <summary>
+            Initialize a forward indexer.
+            </summary>
+            <param name="values">Holds the values of the features</param>
+            <param name="features">The array of feature indices this will index</param>
+            <param name="workArray">A possibly shared working array, once used by this forward
+            indexer it should not be used in any previously created forward indexer</param>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.ExamplesToFastTreeBins.BinUpperBounds">
+            <summary> Bin boundaries </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreePredictionWrapper.SaveAsCode(System.IO.TextWriter,Microsoft.ML.Runtime.Data.RoleMappedSchema)">
+            <summary>
+            write out a C# representation of the ensemble
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreePredictionWrapper.SaveAsText(System.IO.TextWriter,Microsoft.ML.Runtime.Data.RoleMappedSchema)">
+            <summary>
+            Output the INI model to a given writer
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreePredictionWrapper.SaveAsIni(System.IO.TextWriter,Microsoft.ML.Runtime.Data.RoleMappedSchema,Microsoft.ML.Runtime.Internal.Calibration.ICalibrator)">
+            <summary>
+            Output the INI model to a given writer
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreePredictionWrapper.AddCalibrationToIni(System.String,Microsoft.ML.Runtime.Internal.Calibration.ICalibrator)">
+            <summary>
+            Get the calibration summary in INI format
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreePredictionWrapper.GetSummaryInKeyValuePairs(Microsoft.ML.Runtime.Data.RoleMappedSchema)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreePredictionWrapper.SaveEnsembleAsCode(System.IO.TextWriter,Microsoft.ML.Runtime.Data.RoleMappedSchema)">
+            <summary>
+            returns a C# representation of the ensemble
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreePredictionWrapper.SaveTreeAsCode(Microsoft.ML.Runtime.FastTree.Internal.RegressionTree,System.IO.TextWriter,Microsoft.ML.Runtime.Data.VBuffer{Microsoft.ML.Runtime.Data.DvText}@)">
+            <summary>
+            Convert a single tree to code, called recursively
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.FastTreePredictionWrapper.GetLeaf(System.Int32,Microsoft.ML.Runtime.Data.VBuffer{System.Single}@,System.Collections.Generic.List{System.Int32}@)">
+            <summary>
+            Returns the leaf node in the requested tree for the given feature vector, and populates 'path' with the list of 
+            internal nodes in the path from the root to that leaf. If 'path' is null a new list is initialized. All elements 
+            in 'path' are cleared before filling in the current path nodes.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.GamTrainerBase`2">
+            <summary>
+            Generalized Additive Model Learner.
+            </summary>
+        </member>
+        <member name="F:Microsoft.ML.Runtime.FastTree.GamTrainerBase`2.ArgumentsBase.GainConfidenceLevel">
+            Only consider a gain if its likelihood versus a random choice gain is above a certain value.
+            So 0.95 would mean restricting to gains that have less than a 0.05 change of being generated randomly through choice of a random split.
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.GamPredictorBase.GetFeatureContributions(Microsoft.ML.Runtime.Data.VBuffer{System.Single}@,Microsoft.ML.Runtime.Data.VBuffer{System.Single}@,Microsoft.ML.Runtime.Data.BufferBuilder{System.Single}@)">
+            <summary>
+            Returns a vector of feature contributions for a given example.
+            <paramref name="builder"/> is used as a buffer to accumulate the contributions across trees. 
+            If <paramref name="builder"/> is null, it will be created, otherwise it will be reused.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.GamPredictorBase.VisualizationCommand">
+            <summary>
+            The GAM model visualization command. Because the data access commands must access private members of
+            <see cref="T:Microsoft.ML.Runtime.FastTree.GamPredictorBase"/>, it is convenient to have the command itself nested within the base
+            predictor class.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.GamPredictorBase.VisualizationCommand.Context.NumFeatures">
+            <summary>
+            These are the number of input features, as opposed to the number of features used within GAM
+            which may be lower.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.GamPredictorBase.VisualizationCommand.Context.SaveIfNeeded(Microsoft.ML.Runtime.IHost,Microsoft.ML.Runtime.IChannel,System.String)">
+            <summary>
+            This will write out a file, if needed. In all cases if something is written it will return
+            a version number, with an indication based on sign of whether anything was actually written
+            in this call.
+            </summary>
+            <param name="host">The host from the command</param>
+            <param name="ch">The channel from the command</param>
+            <param name="outFile">The (optionally empty) output file</param>
+            <returns>Returns <c>null</c> if the model file could not be saved because <paramref name="outFile"/>
+            was <c>null</c> or whitespace. Otherwise, if the current version if newer than the last version saved,
+            it will save, and return that version. (In this case, the number is non-negative.) Otherwise, if the current
+            version was the last version saved, then it will return the bitwise not of that version number (in this case,
+            the number is negative).</returns>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.GamPredictorBase.VisualizationCommand.Context.FeatureInfo.UpperBounds">
+            <summary>
+            The upper bounds of each bin.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.GamPredictorBase.VisualizationCommand.Context.FeatureInfo.BinEffects">
+            <summary>
+            The amount added to the model for a document falling in a given bin.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.GamPredictorBase.VisualizationCommand.Context.FeatureInfo.DocCounts">
+            <summary>
+            The number of documents in each bin.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.GamPredictorBase.VisualizationCommand.Context.FeatureInfo.Version">
+            <summary>
+            The version of the GAM context that has these values.
+            </summary>
+        </member>
+        <member name="P:Microsoft.ML.Runtime.FastTree.GamPredictorBase.VisualizationCommand.Context.FeatureInfo.CategoricalFeatureIndex">
+            <summary>
+            For features belonging to the same categorical, this value will be the same, 
+            Set to -1 for non-categoricals.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.GamPredictorBase.VisualizationCommand.Init(Microsoft.ML.Runtime.IChannel)">
+            <summary>
+            Attempts to initialize required items, from the input model file. In the event that anything goes
+            wrong, this method will throw.
+            </summary>
+            <param name="ch">The channel</param>
+            <returns>A structure containing essential information about the GAM dataset that enables
+            operations on top of that structure.</returns>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.SumupPerformanceCommand">
+            <summary>
+            This is an internal utility command to measure the performance of the IntArray sumup operation.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.SignatureParallelTrainer">
+            <summary>
+            Signature of Parallel trainer.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.FindBestThresholdFromRawArrayFun">
+            <summary>
+            delegate function. This function is implemented in TLC, and called by TLC++. It will find best threshold
+            from raw histogram data (countByBin, sumTargetsByBin, sumWeightsByBin, numDocsInLeaf, sumTargets, sumWeights)
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.FastTree.IParallelTraining">
+            <summary>
+            Interface used for parallel training.
+            Mainly contains three parts:
+            1. interactive with IO: <see href="GetLocalBinConstructionFeatures" />, <see href="SyncGlobalBoundary" />.
+               Data will be partitioned by rows in Data parallel and Voting Parallel.
+               To speed up the find bin process, it let different workers to find bins for different features.
+               Then perform global sync up.
+               In Feature parallel, every machines holds all data, so this is unneeded.
+            2. interactive with TreeLearner: <see href="InitIteration" />, <see href="CacheHistogram" />, <see href="IsNeedFindLocalBestSplit" />, 
+                   <see href="IsSkipNonSplittableHistogram" />, <see href="FindGlobalBestSplit" />, <see href="GetGlobalDataCountInLeaf" />, <see href="PerformGlobalSplit" />.
+               A full process is:
+                   Use <see href="InitIteration" /> to alter local active features.
+                   Use <see href="GetGlobalDataCountInLeaf" /> to check smaller leaf and larger leaf.
+                   Use <see href="CacheHistogram" />, <see href="IsNeedFindLocalBestSplit" /> and <see href="IsSkipNonSplittableHistogram" /> to interactive with Feature histograms.
+                   Use <see href="FindGlobalBestSplit" /> to sync up global best split
+                   Use <see href="PerformGlobalSplit" /> to record global num_data in leaves.
+            3. interactive with Application : <see href="GlobalMean" />.
+               Output of leaves is calculated by newton step ( - sum(first_order_gradients) / sum(second_order_gradients)).
+               If data is partitioned by row, it needs to a sync up for these sum result.
+               So It needs to call this to get the real output of leaves.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.InitEnvironment">
+            <summary>
+            Initialize the network connection.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.FinalizeEnvironment">
+            <summary>
+            Finalize the network.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.InitTreeLearner(Microsoft.ML.Runtime.FastTree.Internal.Dataset,System.Int32,System.Int32,System.Int32@)">
+            <summary>
+            Initialize once while construct tree learner.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.FinalizeTreeLearner">
+            <summary>
+            Finalize while tree learner is freed.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.InitIteration(System.Boolean[]@)">
+            <summary>
+            Initialize every time before training a tree.
+            will alter activeFeatures in Feature parallel. 
+            Because it only need to find threshold for part of features in feature parallel.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.FinalizeIteration">
+            <summary>
+            Finalize after trained one tree.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.CacheHistogram(System.Boolean,System.Int32,System.Int32,Microsoft.ML.Runtime.FastTree.Internal.SufficientStatsBase,System.Boolean)">
+            <summary>
+            Cache Histogram, it will be used for global aggregate.
+            Only used in Data parallel and Voting Parallel
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.IsNeedFindLocalBestSplit">
+            <summary>
+            Only return False in Data parallel.
+            Data parallel find best threshold after merged global histograms.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.IsSkipNonSplittableHistogram">
+            <summary>
+            True if need to skip non-splittable histogram. 
+            Only will return False in Voting parallel. 
+            That is because local doesn't have global histograms in Voting parallel,
+            So the information about NonSplittable is not correct, and we cannot skip it. 
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.FindGlobalBestSplit(Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates,Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates,Microsoft.ML.Runtime.FastTree.FindBestThresholdFromRawArrayFun,Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.SplitInfo[])">
+            <summary>
+            Find best split among machines.
+            will save result in bestSplits.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.GetGlobalDataCountInLeaf(System.Int32,System.Int32@)">
+            <summary>
+            Get global num_data on specific leaf.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.PerformGlobalSplit(System.Int32,System.Int32,System.Int32,Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.SplitInfo)">
+            <summary>
+            Used to record the global num_data on leaves.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.GlobalMean(Microsoft.ML.Runtime.FastTree.Internal.Dataset,Microsoft.ML.Runtime.FastTree.Internal.RegressionTree,Microsoft.ML.Runtime.FastTree.Internal.DocumentPartitioning,System.Double[],System.Boolean)">
+            <summary>
+            Get Global mean on different machines for data partitioning in tree.
+            Used for calculating leaf output value.
+            will return a array this is the mean output of all leaves.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.GetLocalBinConstructionFeatures(System.Int32)">
+            <summary>
+            Get indices of features that should be find bin in local.
+            After construct local boundary, should call <see href="SyncGlobalBoundary" /> 
+            to get boundaries for all features.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.FastTree.IParallelTraining.SyncGlobalBoundary(System.Int32,System.Int32,System.Double[][])">
+            <summary>
+            Sync Global feature bucket.
+            used in Data parallel and Voting parallel.
+            Data are partitioned by row. To speed up the Global find bin process, 
+            we can let different workers construct Bin Boundary for different features, 
+            then perform a global sync up.
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.QuantileStatistics.#ctor(System.Single[],System.Single[],System.Boolean)">
+            <summary>
+            data array will be modified because of sorting if it is not already sorted yet and this class owns the data.
+            Modifying the data outside will lead to erroneous output by this class
+            </summary>
+        </member>
+        <member name="M:Microsoft.ML.Runtime.QuantileStatistics.GetQuantile(System.Single)">
+            <summary>
+            There are many ways to estimate quantile. This implementations is based on R-8, SciPy-(1/3,1/3)
+            http://en.wikipedia.org/wiki/Quantile#Estimating_the_quantiles_of_a_population
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.TreeEnsembleFeaturizerBindableMapper">
+            <summary>
+            A bindable mapper wrapper for tree ensembles, that creates a bound mapper with three outputs:
+            1. A vector containing the individual tree outputs of the tree ensemble. 
+            2. An indicator vector for the leaves that the feature vector falls on in the tree ensemble.
+            3. An indicator vector for the internal nodes on the paths that the feature vector falls on in the tree ensemble.
+            </summary>
+        </member>
+        <member name="T:Microsoft.ML.Runtime.Data.TreeEnsembleFeaturizerTransform.ArgumentsForEntryPoint">
+            <summary>
+            REVIEW: Ideally we should have only one arguments class by using IComponentFactory for the model. 
+            For now it probably warrants a REVIEW comment here in case we'd like to merge these two arguments in the future. 
+            Also, it might be worthwhile to extract the common arguments to a base class.
+            </summary>
+        </member>
+    </members>
+</doc>
