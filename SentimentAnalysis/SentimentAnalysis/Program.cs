@@ -20,7 +20,7 @@ namespace SentimentAnalysis
             TrainTestData splitDataView = LoadData(mlContext);
             ITransformer model = BuildAndTrainModel(mlContext, splitDataView.TrainSet);
             Evaluate(mlContext, model, splitDataView.TestSet);
-            UseModelWithSingleItem(mlContext, model);
+            //UseModelWithSingleItem(mlContext, model);
             UseModelWithBatchItems(mlContext, model);
         }
 
@@ -55,25 +55,7 @@ namespace SentimentAnalysis
             Console.WriteLine($"F1Score: {metrics.F1Score:P2}");
             Console.WriteLine("=============== End of model evaluation ===============");
         }
-
-        private static void UseModelWithSingleItem(MLContext mlContext, ITransformer model)
-        {
-            PredictionEngine<SentimentData, SentimentPrediction> predictionFunction = mlContext.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model);
-            SentimentData sampleStatement = new SentimentData
-            {
-                SentimentText = "This was a very bad steak"
-            };
-            var resultPrediction = predictionFunction.Predict(sampleStatement);
-            Console.WriteLine();
-            Console.WriteLine("=============== Prediction Test of model with a single sample and test dataset ===============");
-
-            Console.WriteLine();
-            Console.WriteLine($"Sentiment: {resultPrediction.SentimentText} | Prediction: {(Convert.ToBoolean(resultPrediction.Prediction) ? "Positive" : "Negative")} | Probability: {resultPrediction.Probability} ");
-
-            Console.WriteLine("=============== End of Predictions ===============");
-            Console.WriteLine();
-        }
-
+        
         public static void UseModelWithBatchItems(MLContext mlContext, ITransformer model)
         {
             IEnumerable<SentimentData> sentiments = new[] { new SentimentData
